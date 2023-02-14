@@ -63,6 +63,11 @@ public class MainActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull final ImageViewHolder holder, int position) {
             ((ImageView) holder.itemView).setImageResource(images.get(position));
             holder.itemView.setTag(holder.getAdapterPosition());
+
+            ZoomyConfig config = new ZoomyConfig();
+            config.setImmersiveModeEnabled(false);
+            Zoomy.setDefaultConfig(config);
+
             Zoomy.Builder builder = new Zoomy.Builder(MainActivity.this)
                     .target(holder.itemView)
                     .interpolator(new OvershootInterpolator())
