@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Zoomy.iml" filepath="$PROJECT_DIR$/Zoomy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Zoomy.iml" filepath="$PROJECT_DIR$/.idea/modules/Zoomy.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Zoomy.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Zoomy.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Zoomy.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Zoomy.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Zoomy.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Zoomy.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Zoomy.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Zoomy.app.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.iml" filepath="$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.main.iml" filepath="$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/zoomy/Zoomy.zoomy.unitTest.iml" />
     </modules>
   </component>
 </project>
