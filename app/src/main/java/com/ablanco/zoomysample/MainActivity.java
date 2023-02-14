@@ -8,7 +8,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.OvershootInterpolator;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
             Zoomy.Builder builder = new Zoomy.Builder(MainActivity.this)
                     .target(holder.itemView)
-                    .interpolator(new OvershootInterpolator())
+                    .interpolator(new AccelerateDecelerateInterpolator())
                     .tapListener(new TapListener() {
                         @Override
                         public void onTap(View v) {
