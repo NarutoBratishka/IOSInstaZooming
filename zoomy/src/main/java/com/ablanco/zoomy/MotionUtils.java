@@ -8,13 +8,29 @@ import android.view.MotionEvent;
  * Zoomy.
  */
 class MotionUtils {
+    static float lastOffsetX = 0;
+    static float lastOffsetY = 0;
 
-    static void midPointOfEvent(PointF point, MotionEvent event){
+    static void midPointOfEvent(PointF point, MotionEvent event, boolean breakFakeFinger){
+        int divider = 1;
+        float x;
+        float y;
+
         if (event.getPointerCount() == 2) {
-            float x = event.getX(0) + event.getX(1);
-            float y = event.getY(0) + event.getY(1);
-            point.set(x / 2, y / 2);
-        }
-    }
+            divider = 2;
 
+            if (breakFakeFinger) {
+                lastOffsetX = lastOffsetX - event.getX(1);
+                lastOffsetY = lastOffsetY - event.getY(1);
+            }
+
+            x = event.getX(0) + event.getX(1);
+            y = event.getY(0) + event.getY(1);
+        } else {
+            x = event.getX(0);
+            y = event.getY(0);
+        }
+
+        point.set(x / divider + lastOffsetX, y / divider + lastOffsetY);
+    }
 }

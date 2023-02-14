@@ -1,9 +1,11 @@
 package com.ablanco.zoomy;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.view.GestureDetector;
+import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -24,7 +26,12 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     private static final int STATE_POINTER_DOWN = 1;
     private static final int STATE_ZOOMING = 2;
 
-    private static final float MIN_SCALE_FACTOR = 1f;
+    private static int CURRENT_POINTER_COUNT = 0;
+    private static int LAST_POINTER_COUNT = 0;
+
+    private static float LAST_SCALE = 1F;
+
+    private static final float MIN_SCALE_FACTOR = 0.2f;
     private static final float MAX_SCALE_FACTOR = 5f;
     private final TapListener mTapListener;
     private final LongPressListener mLongPressListener;
@@ -113,6 +120,10 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         mGestureDetector.onTouchEvent(ev);
 
         int action = ev.getAction() & MotionEvent.ACTION_MASK;
+        CURRENT_POINTER_COUNT = ev.getPointerCount();
+
+        boolean newPointerZoom = false;
+        if (LAST_POINTER_COUNT == 1 && CURRENT_POINTER_COUNT == 2) newPointerZoom = true;
 
         switch (action) {
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -123,7 +134,7 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
                         break;
                     case STATE_POINTER_DOWN:
                         mState = STATE_ZOOMING;
-                        MotionUtils.midPointOfEvent(mInitialPinchMidPoint, ev);
+                        MotionUtils.midPointOfEvent(mInitialPinchMidPoint, ev, newPointerZoom);
                         startZoomingView(mTarget);
                         break;
                 }
@@ -132,7 +143,7 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
             case MotionEvent.ACTION_MOVE:
 
                 if (mState == STATE_ZOOMING) {
-                    MotionUtils.midPointOfEvent(mCurrentMovementMidPoint, ev);
+                    MotionUtils.midPointOfEvent(mCurrentMovementMidPoint, ev, newPointerZoom);
                     //because our initial pinch could be performed in any of the view edges,
                     //we need to substract this difference and add system bars height
                     //as an offset to avoid an initial transition jump
@@ -153,13 +164,35 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
 
-                switch (mState) {
-                    case STATE_ZOOMING:
-                        endZoomingView();
-                        break;
-                    case STATE_POINTER_DOWN:
-                        mState = STATE_IDLE;
-                        break;
+                if (CURRENT_POINTER_COUNT == 1) {
+                    switch (mState) {
+                        case STATE_ZOOMING:
+                            LAST_SCALE = 1F;
+                            endZoomingView();
+                            break;
+                        case STATE_POINTER_DOWN:
+                            mState = STATE_IDLE;
+                            break;
+                    }
+                } else {
+                    LAST_SCALE = mZoomableView.getScaleX();
+
+                    if (mState == STATE_ZOOMING) {
+                        MotionUtils.midPointOfEvent(mCurrentMovementMidPoint, ev, newPointerZoom);
+                        //because our initial pinch could be performed in any of the view edges,
+                        //we need to substract this difference and add system bars height
+                        //as an offset to avoid an initial transition jump
+                        mCurrentMovementMidPoint.x -= mInitialPinchMidPoint.x;
+                        mCurrentMovementMidPoint.y -= mInitialPinchMidPoint.y;
+                        //because previous function returns the midpoint for relative X,Y coords,
+                        //we need to add absolute view coords in order to ensure the correct position
+                        mCurrentMovementMidPoint.x += mTargetViewCords.x;
+                        mCurrentMovementMidPoint.y += mTargetViewCords.y;
+                        float x = mCurrentMovementMidPoint.x;
+                        float y = mCurrentMovementMidPoint.y;
+                        mZoomableView.setX(x);
+                        mZoomableView.setY(y);
+                    }
                 }
 
 
@@ -185,10 +218,22 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     private void startZoomingView(View view) {
         mZoomableView = new ImageView(mTarget.getContext());
         mZoomableView.setLayoutParams(new ViewGroup.LayoutParams(mTarget.getWidth(), mTarget.getHeight()));
         mZoomableView.setImageBitmap(ViewUtils.getBitmapFromView(view));
+//        if (mTarget.getTag() instanceof Integer) mZoomableView.setOnTouchListener((touchedView, motionEvent) -> {
+//            MotionEvent fakeEvent = MotionEvent.obtain(motionEvent);
+//            if (fakeEvent.getActionMasked() == MotionEvent.ACTION_DOWN)
+//                fakeEvent.setAction(MotionEvent.ACTION_POINTER_DOWN);
+//            if (fakeEvent.getActionMasked() == MotionEvent.ACTION_UP)
+//                fakeEvent.setAction(MotionEvent.ACTION_POINTER_UP);
+//            fakeEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+//            fakeEvent.recycle();
+//            this.onTouch(mTarget, fakeEvent);
+//            return true;
+//        });
 
         //show the view in the same coords
         mTargetViewCords = ViewUtils.getViewAbsoluteCords(view);
@@ -220,8 +265,8 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         // Don't let the object get too large.
         mScaleFactor = Math.max(MIN_SCALE_FACTOR, Math.min(mScaleFactor, MAX_SCALE_FACTOR));
 
-        mZoomableView.setScaleX(mScaleFactor);
-        mZoomableView.setScaleY(mScaleFactor);
+        mZoomableView.setScaleX(LAST_SCALE * mScaleFactor);
+        mZoomableView.setScaleY(LAST_SCALE * mScaleFactor);
         obscureDecorView(mScaleFactor);
         return true;
     }
