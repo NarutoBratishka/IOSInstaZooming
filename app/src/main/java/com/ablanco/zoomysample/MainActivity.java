@@ -31,10 +31,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mImages.addAll(Arrays.asList(R.drawable.img1, R.drawable.img2,
-                R.drawable.img3, R.drawable.img4, R.drawable.img5,
-                R.drawable.img6, R.drawable.img7, R.drawable.img8,
-                R.drawable.img9, R.drawable.img10));
+        mImages.addAll(
+            Arrays.asList(
+                R.drawable.img1, R.drawable.img2,
+                R.drawable.img3, R.drawable.img4,
+                R.drawable.img5, R.drawable.img6,
+                R.drawable.img7, R.drawable.img8,
+                R.drawable.img9, R.drawable.img10
+            )
+        );
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv);
 
@@ -70,28 +75,28 @@ public class MainActivity extends AppCompatActivity {
             Zoomy.setDefaultConfig(config);
 
             Zoomy.Builder builder = new Zoomy.Builder(MainActivity.this)
-                    .target(holder.itemView)
-                    .interpolator(new AccelerateDecelerateInterpolator())
-                    .tapListener(new TapListener() {
-                        @Override
-                        public void onTap(View v) {
-                            Toast.makeText(MainActivity.this, "Tap on "
-                                    + v.getTag(), Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .longPressListener(new LongPressListener() {
-                        @Override
-                        public void onLongPress(View v) {
-                            Toast.makeText(MainActivity.this, "Long press on "
-                                    + v.getTag(), Toast.LENGTH_SHORT).show();
-                        }
-                    }).doubleTapListener(new DoubleTapListener() {
-                        @Override
-                        public void onDoubleTap(View v) {
-                            Toast.makeText(MainActivity.this, "Double tap on "
-                                    + v.getTag(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                .target(holder.itemView)
+                .interpolator(new AccelerateDecelerateInterpolator())
+                .tapListener(new TapListener() {
+                    @Override
+                    public void onTap(View v) {
+                        Toast.makeText(MainActivity.this, "Tap on "
+                                + v.getTag(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .longPressListener(new LongPressListener() {
+                    @Override
+                    public void onLongPress(View v) {
+                        Toast.makeText(MainActivity.this, "Long press on "
+                                + v.getTag(), Toast.LENGTH_SHORT).show();
+                    }
+                }).doubleTapListener(new DoubleTapListener() {
+                    @Override
+                    public void onDoubleTap(View v) {
+                        Toast.makeText(MainActivity.this, "Double tap on "
+                                + v.getTag(), Toast.LENGTH_SHORT).show();
+                    }
+                });
 
             builder.register();
         }

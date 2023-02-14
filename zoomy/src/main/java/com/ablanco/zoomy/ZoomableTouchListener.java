@@ -44,25 +44,25 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     private ScaleGestureDetector mScaleGestureDetector;
     private GestureDetector mGestureDetector;
     private GestureDetector.SimpleOnGestureListener mGestureListener =
-            new GestureDetector.SimpleOnGestureListener() {
+        new GestureDetector.SimpleOnGestureListener() {
 
-                @Override
-                public boolean onSingleTapConfirmed(MotionEvent e) {
-                    if (mTapListener != null) mTapListener.onTap(mTarget);
-                    return true;
-                }
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                if (mTapListener != null) mTapListener.onTap(mTarget);
+                return true;
+            }
 
-                @Override
-                public void onLongPress(MotionEvent e) {
-                    if (mLongPressListener != null) mLongPressListener.onLongPress(mTarget);
-                }
+            @Override
+            public void onLongPress(MotionEvent e) {
+                if (mLongPressListener != null) mLongPressListener.onLongPress(mTarget);
+            }
 
-                @Override
-                public boolean onDoubleTap(MotionEvent e) {
-                    if (mDoubleTapListener != null) mDoubleTapListener.onDoubleTap(mTarget);
-                    return true;
-                }
-            };
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if (mDoubleTapListener != null) mDoubleTapListener.onDoubleTap(mTarget);
+                return true;
+            }
+        };
     private float mScaleFactor = 1f;
     private PointF mCurrentMovementMidPoint = new PointF();
     private PointF mInitialPinchMidPoint = new PointF();
@@ -90,14 +90,16 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     };
 
 
-    ZoomableTouchListener(TargetContainer targetContainer,
-                          View view,
-                          ZoomyConfig config,
-                          Interpolator interpolator,
-                          ZoomListener zoomListener,
-                          TapListener tapListener,
-                          LongPressListener longPressListener,
-                          DoubleTapListener doubleTapListener) {
+    ZoomableTouchListener(
+        TargetContainer targetContainer,
+        View view,
+        ZoomyConfig config,
+        Interpolator interpolator,
+        ZoomListener zoomListener,
+        TapListener tapListener,
+        LongPressListener longPressListener,
+        DoubleTapListener doubleTapListener
+    ) {
         this.mTargetContainer = targetContainer;
         this.mTarget = view;
         this.mConfig = config;
@@ -208,12 +210,12 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         if (mConfig.isZoomAnimationEnabled()) {
             mAnimatingZoomEnding = true;
             mZoomableView.animate()
-                    .x(mTargetViewCords.x)
-                    .y(mTargetViewCords.y)
-                    .scaleX(1)
-                    .scaleY(1)
-                    .setInterpolator(mEndZoomingInterpolator)
-                    .withEndAction(mEndingZoomAction).start();
+                .x(mTargetViewCords.x)
+                .y(mTargetViewCords.y)
+                .scaleX(1)
+                .scaleY(1)
+                .setInterpolator(mEndZoomingInterpolator)
+                .withEndAction(mEndingZoomAction).start();
         } else mEndingZoomAction.run();
     }
 
