@@ -16,6 +16,7 @@ import com.ablanco.zoomy.DoubleTapListener;
 import com.ablanco.zoomy.LongPressListener;
 import com.ablanco.zoomy.TapListener;
 import com.ablanco.zoomy.Zoomy;
+import com.ablanco.zoomy.ZoomyConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
