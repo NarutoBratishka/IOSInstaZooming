@@ -108,9 +108,14 @@ public class Zoomy {
                 throw new IllegalArgumentException("Target container must not be null");
             if (mTargetView == null)
                 throw new IllegalArgumentException("Target view must not be null");
-            mTargetView.setOnTouchListener(new ZoomableTouchListener(mTargetContainer, mTargetView,
-                    mConfig, mZoomInterpolator, mZoomListener, mTapListener, mLongPressListener,
-                    mdDoubleTapListener));
+
+            mTargetView.setOnTouchListener(
+                new ZoomableTouchListener(
+                    mTargetContainer, mTargetView, mConfig,
+                    mZoomInterpolator, mZoomListener, mTapListener,
+                    mLongPressListener, mdDoubleTapListener
+                )
+            );
             mDisposed = true;
         }
 
