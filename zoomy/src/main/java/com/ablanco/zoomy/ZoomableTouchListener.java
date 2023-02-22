@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.view.GestureDetector;
-import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -14,6 +13,8 @@ import android.view.ViewParent;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.ImageView;
+
+import java.util.Random;
 
 /**
  * Created by Álvaro Blanco Cabrero on 12/02/2017.
@@ -40,12 +41,13 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
     private TargetContainer mTargetContainer;
     private View mTarget;
     private ImageView mZoomableView;
+    private View mTouchCatcherPanel;
     private View mShadow;
     private ScaleGestureDetector mScaleGestureDetector;
     private GestureDetector mGestureDetector;
     private GestureDetector.SimpleOnGestureListener mGestureListener =
         new GestureDetector.SimpleOnGestureListener() {
-
+            //TODO disable actions on second finger handle
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 if (mTapListener != null) mTapListener.onTap(mTarget);
@@ -76,6 +78,7 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         public void run() {
             removeFromDecorView(mShadow);
             removeFromDecorView(mZoomableView);
+
             mTarget.setVisibility(View.VISIBLE);
             mZoomableView = null;
             mCurrentMovementMidPoint = new PointF();
@@ -207,6 +210,7 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
 
 
     private void endZoomingView() {
+        removeTouchCatcherPanel();
         if (mConfig.isZoomAnimationEnabled()) {
             mAnimatingZoomEnding = true;
             mZoomableView.animate()
@@ -225,17 +229,8 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
         mZoomableView = new ImageView(mTarget.getContext());
         mZoomableView.setLayoutParams(new ViewGroup.LayoutParams(mTarget.getWidth(), mTarget.getHeight()));
         mZoomableView.setImageBitmap(ViewUtils.getBitmapFromView(view));
-//        if (mTarget.getTag() instanceof Integer) mZoomableView.setOnTouchListener((touchedView, motionEvent) -> {
-//            MotionEvent fakeEvent = MotionEvent.obtain(motionEvent);
-//            if (fakeEvent.getActionMasked() == MotionEvent.ACTION_DOWN)
-//                fakeEvent.setAction(MotionEvent.ACTION_POINTER_DOWN);
-//            if (fakeEvent.getActionMasked() == MotionEvent.ACTION_UP)
-//                fakeEvent.setAction(MotionEvent.ACTION_POINTER_UP);
-//            fakeEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-//            fakeEvent.recycle();
-//            this.onTouch(mTarget, fakeEvent);
-//            return true;
-//        });
+
+        addTouchCatcherPanel();
 
         //show the view in the same coords
         mTargetViewCords = ViewUtils.getViewAbsoluteCords(view);
@@ -255,6 +250,32 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
 
         if (mConfig.isImmersiveModeEnabled()) hideSystemUI();
         if (mZoomListener != null) mZoomListener.onViewStartedZooming(mTarget);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void addTouchCatcherPanel() {
+        mTouchCatcherPanel = new View(mTarget.getContext());
+        mTouchCatcherPanel.setLayoutParams(
+            new ViewGroup.LayoutParams(
+                    getParentRecursively(mTarget).getWidth(),
+                    getParentRecursively(mTarget).getHeight()
+            )
+        );
+        mTouchCatcherPanel.setOnTouchListener((touchedView, motionEvent) -> {
+            /*VISUALISING*/
+            Random rnd = new Random();
+            int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+            touchedView.setBackgroundColor(color);
+
+            //TODO handle and store current events source here
+            /** Intercept events from initial view **/
+            return true;
+        });
+        getParentRecursively(mTarget).addView(mTouchCatcherPanel);
+    }
+
+    private void removeTouchCatcherPanel() {
+        getParentRecursively(mTarget).removeView(mTouchCatcherPanel);
     }
 
 
@@ -289,6 +310,12 @@ class ZoomableTouchListener implements View.OnTouchListener, ScaleGestureDetecto
 
     private void removeFromDecorView(View v) {
         mTargetContainer.getDecorView().removeView(v);
+    }
+
+    private ViewGroup getParentRecursively(View v) {
+        ViewParent presumablyParent = v.getParent();
+        if (presumablyParent instanceof ViewGroup) return getParentRecursively((ViewGroup) presumablyParent);
+        else return (ViewGroup) v;
     }
 
     private void obscureDecorView(float factor) {
