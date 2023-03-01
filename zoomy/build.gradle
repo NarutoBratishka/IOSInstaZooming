@@ -5,6 +5,7 @@ ext {
 }
 
 apply from: "${rootDir}/scripts/publish-module.gradle"
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
