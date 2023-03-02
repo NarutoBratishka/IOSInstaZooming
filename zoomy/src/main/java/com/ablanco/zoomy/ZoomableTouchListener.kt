@@ -303,13 +303,10 @@ internal class ZoomableTouchListener(
                 onFingerUp(event)
             }
 
-            MotionUtils.midPointOfEvent(
-                mCurrentMovementMidPoint,
-                activePointers,
-                event
-            )
             Log.e("Catcher", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
 
+
+            //TODO причесать. это ужасно
             if (CURRENT_POINTER_COUNT == 2) {
                 if (actionMasked == MotionEvent.ACTION_MOVE) {
                     mState = STATE_ZOOMING
@@ -333,6 +330,15 @@ internal class ZoomableTouchListener(
 
                     MotionEvent.ACTION_MOVE -> {
                         fakeScaleFactor = hypotenuse / fakeScaleFactorStartPointer
+                        when (mState) {
+                            STATE_IDLE -> mState = STATE_POINTER_DOWN
+                            STATE_POINTER_DOWN -> mState = STATE_ZOOMING
+                        }
+                        MotionUtils.midPointOfEvent(
+                            mCurrentMovementMidPoint,
+                            activePointers,
+                            event
+                        )
                     }
 
                 }
@@ -390,6 +396,11 @@ internal class ZoomableTouchListener(
             val y = mCurrentMovementMidPoint.y
             mZoomableView!!.x = x
             mZoomableView!!.y = y
+            Log.e("TEST", "XXX: $x, YYY: $y")
+            if (event.actionMasked() == MotionEvent.ACTION_POINTER_UP) {
+                Log.d("TEST", "XXX: $x, YYY: $y")
+                Log.e("TEST", "XXX: $x, YYY: $y")
+            }
         }
     }
 
