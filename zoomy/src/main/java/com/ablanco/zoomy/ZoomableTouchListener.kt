@@ -219,7 +219,7 @@ internal class ZoomableTouchListener(
                     it.source == PointerInfo.Source.TOUCH_CATCHER
                 }
             else if (actionMasked == MotionEvent.ACTION_POINTER_UP)
-                checkAndRemoveTargetPoints.addAll(pointerIds)
+                checkAndRemoveCatcherPoints.addAll(pointerIds)
         }
     }
 
