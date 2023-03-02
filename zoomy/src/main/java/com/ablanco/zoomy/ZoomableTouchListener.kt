@@ -99,7 +99,11 @@ internal class ZoomableTouchListener(
 
         //все перехватываемые поинтеры в этой части будут Source.TARGET_VIEW
         LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-        collectViewPointers(ev, PointerInfo.Source.TARGET_VIEW)
+        kotlin.runCatching {
+            collectViewPointers(ev, PointerInfo.Source.TARGET_VIEW)
+        }.getOrElse {//при попытке спровоцировать жест, двумя пальцами по разным вьюхам
+            return false //TODO сделать нормально. остаются коллбеки - их надо уничтожить
+        }
         CURRENT_POINTER_COUNT = activePointers.count()
 
         Log.e("Target", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
@@ -298,27 +302,17 @@ internal class ZoomableTouchListener(
             CURRENT_POINTER_COUNT = activePointers.count()
 
             val actionMasked = event.actionMasked()
+            mState = STATE_ZOOMING
 
-            if (isFingerUp(actionMasked)) {
+            if (isFingerUp(actionMasked))
                 onFingerUp(event)
-            }
+            else
+                onFingerMove(event)
 
             Log.e("Catcher", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
 
-            MotionUtils.midPointOfEvent(
-                mCurrentMovementMidPoint,
-                activePointers,
-                event
-            )
-            if (activePointers.find { it.source == PointerInfo.Source.TARGET_VIEW } == null) {
-                onFingerMove(event)
-            }
-
             //TODO причесать. это ужасно
             if (activePointers.count() == 2) {
-                if (actionMasked == MotionEvent.ACTION_MOVE) {
-                    mState = STATE_ZOOMING
-                }
 
                 val point1 = activePointers[0]
                 val point2 = activePointers[1]
@@ -338,10 +332,6 @@ internal class ZoomableTouchListener(
 
                     MotionEvent.ACTION_MOVE -> {
                         fakeScaleFactor = hypotenuse / fakeScaleFactorStartPointer
-                        when (mState) {
-                            STATE_IDLE -> mState = STATE_POINTER_DOWN
-                            STATE_POINTER_DOWN -> mState = STATE_ZOOMING
-                        }
                     }
                 }
 
