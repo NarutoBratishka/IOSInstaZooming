@@ -315,7 +315,7 @@ internal class ZoomableTouchListener(
             }
 
             //TODO причесать. это ужасно
-            if (CURRENT_POINTER_COUNT == 2) {
+            if (activePointers.count() == 2) {
                 if (actionMasked == MotionEvent.ACTION_MOVE) {
                     mState = STATE_ZOOMING
                 }
@@ -365,7 +365,7 @@ internal class ZoomableTouchListener(
     }
 
     private fun onFingerUp(event: MotionEvent) {
-        if (CURRENT_POINTER_COUNT == 0) {
+        if (activePointers.count() == 0) {
             when (mState) {
                 STATE_ZOOMING -> {
                     endZoomingView()
@@ -373,7 +373,6 @@ internal class ZoomableTouchListener(
                 STATE_POINTER_DOWN -> mState = STATE_IDLE
             }
         } else {
-            LAST_SCALE = mZoomableView!!.scaleX
             onFingerMove(event)
         }
     }
@@ -465,8 +464,8 @@ internal class ZoomableTouchListener(
         private const val STATE_IDLE = 0
         private const val STATE_POINTER_DOWN = 1
         private const val STATE_ZOOMING = 2
-        @Volatile private var LAST_POINTER_COUNT = 0
-        @Volatile private var CURRENT_POINTER_COUNT = 0
+        @Volatile private var LAST_POINTER_COUNT = 0 //TODO delete after all (already not need)
+        @Volatile private var CURRENT_POINTER_COUNT = 0 //TODO delete after all (already not need)
         private var LAST_SCALE = 1f
         private const val MIN_SCALE_FACTOR = 0.2f
         private const val MAX_SCALE_FACTOR = 5f
