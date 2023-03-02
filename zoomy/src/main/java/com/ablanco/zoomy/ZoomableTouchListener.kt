@@ -305,6 +305,14 @@ internal class ZoomableTouchListener(
 
             Log.e("Catcher", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
 
+            MotionUtils.midPointOfEvent(
+                mCurrentMovementMidPoint,
+                activePointers,
+                event
+            )
+            if (activePointers.find { it.source == PointerInfo.Source.TARGET_VIEW } == null) {
+                onFingerMove(event)
+            }
 
             //TODO причесать. это ужасно
             if (CURRENT_POINTER_COUNT == 2) {
@@ -334,13 +342,7 @@ internal class ZoomableTouchListener(
                             STATE_IDLE -> mState = STATE_POINTER_DOWN
                             STATE_POINTER_DOWN -> mState = STATE_ZOOMING
                         }
-                        MotionUtils.midPointOfEvent(
-                            mCurrentMovementMidPoint,
-                            activePointers,
-                            event
-                        )
                     }
-
                 }
 
                 LAST_SCALE *= fakeScaleFactor
