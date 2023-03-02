@@ -16,6 +16,7 @@ internal object MotionUtils {
     private var newOffsetY = 0F
 
     private var pointerBeforePointerUp: List<PointerInfo> = emptyList()
+    private var previousPointers: List<PointerInfo> = emptyList()
 
     fun midPointOfEvent(point: PointF, pointers: List<PointerInfo>, event: MotionEvent) {
         val x: Float
@@ -27,10 +28,12 @@ internal object MotionUtils {
                 point[savedPositionX] = savedPositionY
                 return
             }
+
             1 -> {
-                //TODO вот тут нужно применять тот магический свиг
                 if (pointerBeforePointerUp.isNotEmpty()) {
                     val currExistPtr = pointers.single()
+                    //Ищем элемент, который у нас был, чтоб скорректировать новые координаты
+                    //Потому что ACTION_UP
                     pointerBeforePointerUp.find {
                         it.pointerId == currExistPtr.pointerId && it.source == currExistPtr.source
                     }?.let { removedPointer ->
@@ -38,38 +41,53 @@ internal object MotionUtils {
                         newOffsetY = savedPositionY * 2 - removedPointer.rawY
                     }
                     pointerBeforePointerUp = emptyList()
+
+                } else if (actionMasked == MotionEvent.ACTION_UP) {
+                    val currExistPtr = pointers.single()
+                    //Ищем элемент, который у нас был, чтоб скорректировать новые координаты
+                    //Потому что ACTION_UP
+                    previousPointers.find {
+                        it.pointerId == currExistPtr.pointerId && it.source == currExistPtr.source
+                    }?.let { removedPointer ->
+                        newOffsetX = savedPositionX * 2 - removedPointer.rawX
+                        newOffsetY = savedPositionY * 2 - removedPointer.rawY
+                    }
                 }
                 x = pointers[0].rawX + newOffsetX
                 y = pointers[0].rawY + newOffsetY
+                previousPointers = pointers.toList()
             }
+
             else -> {
-                //TODO вот тут надо высчитать сдвиг, который нужно сохранить и применять дальше ко всем пересчетам без исключения
-                Log.e("MotionEvent", MotionEvent.actionToString(actionMasked))
                 if (actionMasked == MotionEvent.ACTION_POINTER_UP) {
                     pointerBeforePointerUp = pointers.toList()
-                }
-                x = pointers[0].rawX + pointers[1].rawX
-                y = pointers[0].rawY + pointers[1].rawY
-            }
-        }
-        var pointX = x / 2
-        var pointY = y / 2
+                    //следующие расчеты происходят в when -> 1
+                } else if (actionMasked in arrayOf(
+                    MotionEvent.ACTION_DOWN,
+                    MotionEvent.ACTION_POINTER_DOWN
+                )) {
+                    val newPointer = kotlin.runCatching {
+                        val currExistPtr = previousPointers.single()
+                        //Ищем элемент, которого у нас не было, чтоб скорректировать новые координаты
+                        //Потому что ACTION_DOWN
+                        pointers.find {
+                            it.pointerId != currExistPtr.pointerId || it.source != currExistPtr.source
+                        }?: pointers[1]
+                    }.getOrDefault(pointers[1])
 
-        when (actionMasked) {
-            MotionEvent.ACTION_POINTER_UP -> {
-                savedPositionX = pointX
-                savedPositionY = pointY
-            }
-            MotionEvent.ACTION_POINTER_DOWN -> {
-//                pointX = savedXOffset
-//                pointY = savedYOffset
+                    newOffsetX -= newPointer.rawX
+                    newOffsetY -= newPointer.rawY
+                }
+                x = pointers[0].rawX + pointers[1].rawX + newOffsetX
+                y = pointers[0].rawY + pointers[1].rawY + newOffsetY
+                previousPointers = pointers.toList()
             }
         }
-//        Log.e("TEST", "XXX: $pointX, YYY: $pointY")
-//        if (actionMasked == MotionEvent.ACTION_POINTER_UP) {
-//            Log.d("TEST", "XXX: $pointX, YYY: $pointY")
-//            Log.e("TEST", "XXX: $pointX, YYY: $pointY")
-//        }
+        val pointX = x / 2
+        val pointY = y / 2
+
+        savedPositionX = pointX
+        savedPositionY = pointY
         point[pointX] = pointY
     }
 
