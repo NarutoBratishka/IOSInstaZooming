@@ -14,17 +14,21 @@ internal object MotionUtils {
         var divider = 1
         val x: Float
         val y: Float
-        if (pointers.size == 2) {
-            divider = 2
-            if (breakFakeFinger) {
-                lastOffsetX = lastOffsetX - pointers[1].rawX
-                lastOffsetY = lastOffsetY - pointers[1].rawY
+        when (pointers.size) {
+            0 -> return
+            1 -> {
+                x = pointers[0].rawX
+                y = pointers[0].rawY
             }
-            x = pointers[0].rawX + pointers[1].rawX
-            y = pointers[0].rawY + pointers[1].rawY
-        } else {
-            x = pointers[0].rawX
-            y = pointers[0].rawY
+            else -> {
+                divider = 2
+                if (breakFakeFinger) {
+                    lastOffsetX = lastOffsetX - pointers[1].rawX
+                    lastOffsetY = lastOffsetY - pointers[1].rawY
+                }
+                x = pointers[0].rawX + pointers[1].rawX
+                y = pointers[0].rawY + pointers[1].rawY
+            }
         }
         point[x / divider + lastOffsetX] = y / divider + lastOffsetY
     }
