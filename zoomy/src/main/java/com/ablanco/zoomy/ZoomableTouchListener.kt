@@ -11,6 +11,7 @@ import android.view.View.OnTouchListener
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Interpolator
 import android.widget.ImageView
+import com.ablanco.zoomy.MotionUtils.actionMasked
 import java.util.*
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -103,7 +104,6 @@ internal class ZoomableTouchListener(
 
         Log.e("Target", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
 
-        val newPointerZoom = LAST_POINTER_COUNT == 1 && CURRENT_POINTER_COUNT == 2
         when (action) {
             MotionEvent.ACTION_POINTER_DOWN,
             MotionEvent.ACTION_DOWN ->
@@ -114,19 +114,19 @@ internal class ZoomableTouchListener(
                         MotionUtils.midPointOfEvent(
                             mInitialPinchMidPoint,
                             activePointers,
-                            newPointerZoom
+                            ev
                         )
                         startZoomingView(mTarget)
                     }
                 }
 
             MotionEvent.ACTION_MOVE ->
-                onFingerMove(newPointerZoom)
+                onFingerMove(ev)
 
             MotionEvent.ACTION_POINTER_UP,
             MotionEvent.ACTION_UP,
             MotionEvent.ACTION_CANCEL ->
-                onFingerUp(newPointerZoom)
+                onFingerUp(ev)
         }
         return true
     }
@@ -160,7 +160,7 @@ internal class ZoomableTouchListener(
             )
 
             //Стираем pointers которые больше не существуют
-            val actionMasked = event.action and MotionEvent.ACTION_MASK
+            val actionMasked = event.actionMasked()
             //Если event прекратился - стираем всю информацию о поинтерах с него
             if (actionMasked in arrayOf(MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL))
                 activePointers.removeAll {
@@ -292,30 +292,23 @@ internal class ZoomableTouchListener(
             getParentRecursively(mTarget).height
         )
         mTouchCatcherPanel!!.setOnTouchListener { catcher: View, event: MotionEvent ->
-            /*VISUALISING*/
-//            val rnd = Random()
-//            val color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
-//            catcher.setBackgroundColor(color)
 
-            /** new try */
             LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
             collectViewPointers(event, PointerInfo.Source.TOUCH_CATCHER)
             CURRENT_POINTER_COUNT = activePointers.count()
 
-            val newPointerZoom = LAST_POINTER_COUNT == 1 && CURRENT_POINTER_COUNT == 2
-            val actionMasked = event.actionMasked and MotionEvent.ACTION_MASK
+            val actionMasked = event.actionMasked()
 
             if (isFingerUp(actionMasked)) {
-                onFingerUp(newPointerZoom)
+                onFingerUp(event)
             }
 
             MotionUtils.midPointOfEvent(
                 mCurrentMovementMidPoint,
                 activePointers,
-                newPointerZoom
+                event
             )
             Log.e("Catcher", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
-//            Log.e("Учитывать как новое касание", "$newPointerZoom")
 
             if (CURRENT_POINTER_COUNT == 2) {
                 if (actionMasked == MotionEvent.ACTION_MOVE) {
@@ -331,7 +324,7 @@ internal class ZoomableTouchListener(
                 ) / LAST_SCALE
 
                 var fakeScaleFactor: Float = 1F
-                when (event.action and MotionEvent.ACTION_MASK) {
+                when (event.actionMasked()) {
                     MotionEvent.ACTION_POINTER_DOWN,
                     MotionEvent.ACTION_DOWN -> {
                         fakeScaleFactorStartPointer = hypotenuse
@@ -363,7 +356,7 @@ internal class ZoomableTouchListener(
         obscureDecorView(mScaleFactor)
     }
 
-    private fun onFingerUp(newPointerZoom: Boolean) {
+    private fun onFingerUp(event: MotionEvent) {
         if (CURRENT_POINTER_COUNT == 0) {
             when (mState) {
                 STATE_ZOOMING -> {
@@ -373,16 +366,16 @@ internal class ZoomableTouchListener(
             }
         } else {
             LAST_SCALE = mZoomableView!!.scaleX
-            onFingerMove(newPointerZoom)
+            onFingerMove(event)
         }
     }
 
-    private fun onFingerMove(newPointerZoom: Boolean) {
+    private fun onFingerMove(event: MotionEvent) {
         if (mState == STATE_ZOOMING) {
             MotionUtils.midPointOfEvent(
                 mCurrentMovementMidPoint,
                 activePointers,
-                newPointerZoom
+                event
             )
             //because our initial pinch could be performed in any of the view edges,
             //we need to substract this difference and add system bars height

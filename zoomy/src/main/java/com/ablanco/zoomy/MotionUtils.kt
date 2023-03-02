@@ -1,6 +1,7 @@
 package com.ablanco.zoomy
 
 import android.graphics.PointF
+import android.view.MotionEvent
 import java.util.*
 
 /**
@@ -10,7 +11,7 @@ import java.util.*
 internal object MotionUtils {
     var lastOffsetX = 0f
     var lastOffsetY = 0f
-    fun midPointOfEvent(point: PointF, pointers: List<PointerInfo>, breakFakeFinger: Boolean) {
+    fun midPointOfEvent(point: PointF, pointers: List<PointerInfo>, event: MotionEvent) {
         var divider = 1
         val x: Float
         val y: Float
@@ -22,7 +23,7 @@ internal object MotionUtils {
             }
             else -> {
                 divider = 2
-                if (breakFakeFinger) {
+                if (event.actionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
                     lastOffsetX = lastOffsetX - pointers[1].rawX
                     lastOffsetY = lastOffsetY - pointers[1].rawY
                 }
@@ -32,5 +33,7 @@ internal object MotionUtils {
         }
         point[x / divider + lastOffsetX] = y / divider + lastOffsetY
     }
+
+    fun MotionEvent.actionMasked() = action and MotionEvent.ACTION_MASK
 
 }
