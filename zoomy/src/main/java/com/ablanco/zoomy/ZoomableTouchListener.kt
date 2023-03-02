@@ -98,7 +98,7 @@ internal class ZoomableTouchListener(
 
         //все перехватываемые поинтеры в этой части будут Source.TARGET_VIEW
         LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-        collectTargetViewPointers(ev)
+        collectViewPointers(ev, PointerInfo.Source.TARGET_VIEW)
         CURRENT_POINTER_COUNT = activePointers.count()
 
         Log.e("Target", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
@@ -131,95 +131,98 @@ internal class ZoomableTouchListener(
         return true
     }
 
-    private fun collectTargetViewPointers(event: MotionEvent) = synchronized(this) {
+    private fun collectViewPointers(
+        event: MotionEvent,
+        source: PointerInfo.Source
+    ) = synchronized(this) {
         val pointerIds = executeListOfPointersIds(event)
 
-        if (checkAndRemoveTargetPoints.isNotEmpty()) {
-            val pointersToRemove = checkAndRemoveTargetPoints.subtract(pointerIds.toSet())
-            activePointers.removeAll {
-                it.source == PointerInfo.Source.TARGET_VIEW && it.pointerId in pointersToRemove
-            }
-            checkAndRemoveTargetPoints.clear()
-        }
+        checkAndRemove(source, pointerIds)
 
-        for (i in 0..1) {
+        //сдвиг для catcher, чтобы не затирать pointer с оригинального touchListener
+        val toOffset =
+            if (source == PointerInfo.Source.TOUCH_CATCHER)
+                activePointers.count { it.source == PointerInfo.Source.TARGET_VIEW }
+            else 0
+
+        //проходим по первым поинтерам
+        for (i in 0 until 2 - toOffset) {
             val priority =
-                if (i == 0) PointerInfo.Priority.PRIMARY
-                else PointerInfo.Priority.DEPENDENT
-
-            kotlin.runCatching {
-                //Создаем pointer
-                PointerInfo(
-                    pointerIds[i],
-                    event.getX(i),
-                    event.getY(i),
-                    priority,
-                    PointerInfo.Source.TARGET_VIEW
-                )
-            }.getOrNull()?.let { pointer ->
-                //Если такой уже есть в списке активных
-                if (activePointers.find { it.pointerId == pointer.pointerId } != null)
-                    //Перезаписываем
-                    activePointers[i] = pointer
+                if (i == 0 && (source == PointerInfo.Source.TARGET_VIEW || toOffset == 0))
+                    PointerInfo.Priority.PRIMARY
                 else
-                    //Добавляем
-                    activePointers.add(i, pointer)
-            }
+                    PointerInfo.Priority.DEPENDENT
+
+            //собираем инфо о поинтерах
+            createAndAddPointer(
+                pointerIds, i, event, priority,
+                source, toOffset
+            )
+
             //Стираем pointers которые больше не существуют
             val actionMasked = event.action and MotionEvent.ACTION_MASK
+            //Если event прекратился - стираем всю информацию о поинтерах с него
             if (actionMasked in arrayOf(MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL))
                 activePointers.removeAll {
-                    it.source == PointerInfo.Source.TARGET_VIEW
+                    it.source == source
                 }
-            else if (actionMasked == MotionEvent.ACTION_POINTER_UP)
-                checkAndRemoveTargetPoints.addAll(pointerIds)
+            //Если убрали 1 палец - сохраняем текущий набор глобально чтобы стереть разницу в следующем заходе
+            else if (actionMasked == MotionEvent.ACTION_POINTER_UP) {
+                val checkAndRemoveList = when (source) {
+                    PointerInfo.Source.TARGET_VIEW -> checkAndRemoveTargetPoints
+                    PointerInfo.Source.TOUCH_CATCHER -> checkAndRemoveCatcherPoints
+                }
+                checkAndRemoveList.addAll(pointerIds)
+            }
         }
     }
 
-    private fun collectTouchCatcherViewPointers(event: MotionEvent) = synchronized(this) {
-        val pointerIds = executeListOfPointersIds(event)
+    private fun createAndAddPointer(
+        pointerIds: List<Int>,
+        index: Int,
+        event: MotionEvent,
+        priority: PointerInfo.Priority,
+        source: PointerInfo.Source,
+        toOffset: Int
+    ) {
+        kotlin.runCatching {
+            //Создаем pointer
+            PointerInfo(
+                pointerIds[index],
+                event.getX(index),
+                event.getY(index),
+                priority,
+                source
+            )
+        }.getOrNull()?.let { pointer ->
+            //Если такой уже есть в списке активных
+            if (activePointers.find {
+                it.pointerId == pointer.pointerId &&
+                it.source == pointer.source
+            } != null)
+            //Перезаписываем
+                activePointers[index + toOffset] = pointer
+            else
+            //Добавляем
+                activePointers.add(index + toOffset, pointer)
+        }
+    }
 
-        if (checkAndRemoveCatcherPoints.isNotEmpty()) {
-            val pointersToRemove = checkAndRemoveCatcherPoints.subtract(pointerIds.toSet())
-            activePointers.removeAll {
-                it.source == PointerInfo.Source.TOUCH_CATCHER && it.pointerId in pointersToRemove
-            }
-            checkAndRemoveCatcherPoints.clear()
+    private fun checkAndRemove(
+        source: PointerInfo.Source,
+        existingPointerIds: List<Int>,
+    ) {
+        val preparedList: MutableList<Int> = when (source) {
+            PointerInfo.Source.TOUCH_CATCHER -> checkAndRemoveCatcherPoints
+            PointerInfo.Source.TARGET_VIEW -> checkAndRemoveTargetPoints
         }
 
-        val activeTargetPts = activePointers.count { it.source == PointerInfo.Source.TARGET_VIEW }
-        for (i in 0 until 2 - activeTargetPts) {
-            val priority =
-                if (i == 0 && activeTargetPts == 0) PointerInfo.Priority.PRIMARY
-                else PointerInfo.Priority.DEPENDENT
-
-            kotlin.runCatching {
-                //Создаем pointer
-                PointerInfo(
-                    pointerIds[i],
-                    event.getX(i),
-                    event.getY(i),
-                    priority,
-                    PointerInfo.Source.TOUCH_CATCHER
-                )
-            }.getOrNull()?.let { pointer ->
-                //Если такой уже есть в списке активных
-                if (activePointers.find { it.pointerId == pointer.pointerId } != null)
-                    //Перезаписываем
-                    activePointers[i + activeTargetPts] = pointer
-                else
-                    //Добавляем
-                    activePointers.add(i + activeTargetPts, pointer)
-                //В случае ошибки создания pointer - берем pointer по индексу
+        if (preparedList.isNotEmpty()) {
+            val pointersToRemove = preparedList.subtract(existingPointerIds.toSet())
+            activePointers.removeAll {
+                it.source == source && it.pointerId in pointersToRemove
             }
-            //Стираем pointers которые больше не существуют
-            val actionMasked = event.action and MotionEvent.ACTION_MASK
-            if (actionMasked in arrayOf(MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL))
-                activePointers.removeAll {
-                    it.source == PointerInfo.Source.TOUCH_CATCHER
-                }
-            else if (actionMasked == MotionEvent.ACTION_POINTER_UP)
-                checkAndRemoveCatcherPoints.addAll(pointerIds)
+            preparedList.clear()
         }
     }
 
@@ -296,7 +299,7 @@ internal class ZoomableTouchListener(
 
             /** new try */
             LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-            collectTouchCatcherViewPointers(event)
+            collectViewPointers(event, PointerInfo.Source.TOUCH_CATCHER)
             CURRENT_POINTER_COUNT = activePointers.count()
 
             val newPointerZoom = LAST_POINTER_COUNT == 1 && CURRENT_POINTER_COUNT == 2
