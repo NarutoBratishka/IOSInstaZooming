@@ -1,4 +1,4 @@
-package com.ablanco.zoomysample;
+package com.katorabian.zoomysample;
 
 import org.junit.Test;
 

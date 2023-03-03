@@ -1,4 +1,4 @@
-package com.ablanco.zoomy
+package com.katorabian.zoomy
 
 import android.annotation.SuppressLint
 import android.graphics.Point
@@ -11,7 +11,7 @@ import android.view.View.OnTouchListener
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Interpolator
 import android.widget.ImageView
-import com.ablanco.zoomy.MotionUtils.actionMasked
+import com.katorabian.zoomy.MotionUtils.actionMasked
 import java.util.*
 import kotlin.math.pow
 import kotlin.math.sqrt

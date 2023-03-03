@@ -1,7 +1,6 @@
-package com.ablanco.zoomy
+package com.katorabian.zoomy
 
 import android.graphics.PointF
-import android.util.Log
 import android.view.MotionEvent
 
 /**

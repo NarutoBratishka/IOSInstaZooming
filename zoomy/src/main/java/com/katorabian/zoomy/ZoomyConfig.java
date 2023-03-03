@@ -1,4 +1,4 @@
-package com.ablanco.zoomy;
+package com.katorabian.zoomy;
 
 /**
  * Created by Álvaro Blanco Cabrero on 12/02/2017.

@@ -1,8 +1,7 @@
-package com.ablanco.zoomysample;
+package com.katorabian.zoomysample;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 
 /**
  * Created by Álvaro Blanco Cabrero on 12/02/2017.

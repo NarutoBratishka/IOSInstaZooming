@@ -1,4 +1,4 @@
-package com.ablanco.zoomysample;
+package com.katorabian.zoomysample;
 
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -12,11 +12,12 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.ablanco.zoomy.DoubleTapListener;
-import com.ablanco.zoomy.LongPressListener;
-import com.ablanco.zoomy.TapListener;
-import com.ablanco.zoomy.Zoomy;
-import com.ablanco.zoomy.ZoomyConfig;
+import com.katorabian.R;
+import com.katorabian.zoomy.DoubleTapListener;
+import com.katorabian.zoomy.LongPressListener;
+import com.katorabian.zoomy.TapListener;
+import com.katorabian.zoomy.Zoomy;
+import com.katorabian.zoomy.ZoomyConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ImageView imageView = new SquareImageView(MainActivity.this);
+            ImageView imageView = new com.katorabian.zoomysample.SquareImageView(MainActivity.this);
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             return new ImageViewHolder(imageView);
         }

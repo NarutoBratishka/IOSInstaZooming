@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ablanco.zoomysample">
+    package="com.katorabian.zoomysample">
 
     <application
         android:allowBackup="true"
@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.ablanco.zoomysample.MainActivity">
+        <activity android:name="com.katorabian.zoomysample.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

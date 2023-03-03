@@ -1,4 +1,4 @@
-package com.ablanco.zoomy;
+package com.katorabian.zoomy;
 
 import org.junit.Test;
 
