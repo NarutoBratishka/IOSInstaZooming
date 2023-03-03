@@ -39,7 +39,7 @@ task clean(type: Delete) {
 apply from: "${rootDir}/scripts/publish-root.gradle"
 
 ext {
-    PUBLISH_GROUP_ID = 'io.github.katotabian'
+    PUBLISH_GROUP_ID = 'io.github.katorabian'
     PUBLISH_VERSION = '1.0.0'
 }
 
