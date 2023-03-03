@@ -1,4 +1,4 @@
-![Maven Central](https://img.shields.io/maven-central/v/io.github.imablanco/zoomy)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.narutobratishka/ios-insta-zoomin)
 
 # Zoomy
 Zoomy is an easy to use pinch-to-zoom Android library
@@ -7,7 +7,7 @@ Zoomy is an easy to use pinch-to-zoom Android library
 ## Installation
 
 ```gradle
-implementation 'io.github.imablanco:zoomy:{latest version}'
+implementation 'io.github.narutobratishka:ios-insta-zooming:{latest version}'
 ```
 
 ## Usage 

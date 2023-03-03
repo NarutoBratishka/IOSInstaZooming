@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 ext {
     // group id
-    PUBLISH_GROUP_ID = 'io.github.katorabian'
+    PUBLISH_GROUP_ID = 'io.github.narutobratishka'
 }
 
 apply from: "${rootDir}/scripts/publish-module.gradle"

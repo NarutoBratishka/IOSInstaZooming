@@ -42,6 +42,6 @@ ext {
     // текущая версия библиотеки
     PUBLISH_VERSION = '1.0.0'
     // artifact id библиотеки
-    PUBLISH_ARTIFACT_ID = 'iosinstazooming'
+    PUBLISH_ARTIFACT_ID = 'ios-insta-zooming'
 }
 
