@@ -1,6 +1,6 @@
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.narutobratishka/ios-insta-zooming)
 
-# Zoomy
+# IOSInstaZooming
 Zoomy is an easy to use pinch-to-zoom Android library
 
 ![alt tag](art/zoomy.gif)
