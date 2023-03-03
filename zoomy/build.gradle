@@ -4,10 +4,6 @@ apply plugin: 'maven-publish'
 ext {
     // group id
     PUBLISH_GROUP_ID = 'io.github.katorabian'
-    // текущая версия библиотеки
-    PUBLISH_VERSION = '1.0.0'
-    // artifact id библиотеки
-    PUBLISH_ARTIFACT_ID = 'iosinstazooming'
 }
 
 apply from: "${rootDir}/scripts/publish-module.gradle"
