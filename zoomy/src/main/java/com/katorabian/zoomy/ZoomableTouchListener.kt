@@ -1,6 +1,8 @@
 package com.katorabian.zoomy
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Point
 import android.graphics.PointF
 import android.util.Log
@@ -12,6 +14,8 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Interpolator
 import android.widget.ImageView
 import com.katorabian.zoomy.MotionUtils.actionMasked
+import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.util.*
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -28,7 +32,8 @@ internal class ZoomableTouchListener(
     zoomListener: ZoomListener?,
     tapListener: TapListener?,
     longPressListener: LongPressListener?,
-    doubleTapListener: DoubleTapListener?
+    doubleTapListener: DoubleTapListener?,
+    isAnimated: Boolean = false
 ) : OnTouchListener, OnScaleGestureListener {
     private var fakeScaleFactorStartPointer: Float = 0F
     private var isScalingNow = false
@@ -36,8 +41,9 @@ internal class ZoomableTouchListener(
     private var mTapListener: TapListener? = null
     private var mLongPressListener: LongPressListener? = null
     private var mDoubleTapListener: DoubleTapListener? = null
+    private var mIsAnimatedTarget: Boolean = false
     private var mState = STATE_IDLE
-    private var mZoomableView: ImageView? = null
+    private var mZoomableView: View? = null
     private var mTouchCatcherPanel: View? = null
     private var mShadow: View? = null
     private val mScaleGestureDetector: ScaleGestureDetector
@@ -68,7 +74,7 @@ internal class ZoomableTouchListener(
     private val mEndingZoomAction = Runnable {
         removeFromDecorView(mShadow)
         removeFromDecorView(mZoomableView)
-        mTarget.visibility = View.VISIBLE
+        mTarget.alpha = 1F
         mZoomableView = null
         mCurrentMovementMidPoint = PointF()
         mInitialPinchMidPoint = PointF()
@@ -89,6 +95,7 @@ internal class ZoomableTouchListener(
         mTapListener = tapListener
         mLongPressListener = longPressListener
         mDoubleTapListener = doubleTapListener
+        mIsAnimatedTarget = isAnimated
     }
 
     override fun onTouch(v: View, ev: MotionEvent): Boolean {
@@ -267,9 +274,45 @@ internal class ZoomableTouchListener(
     @SuppressLint("ClickableViewAccessibility")
     private fun startZoomingView(view: View) {
         isScalingNow = true
-        mZoomableView = ImageView(mTarget.context)
-        mZoomableView!!.layoutParams = ViewGroup.LayoutParams(mTarget.width, mTarget.height)
-        mZoomableView!!.setImageBitmap(ViewUtils.getBitmapFromView(view))
+        when {
+            mIsAnimatedTarget -> {
+                mZoomableView = DummyAnimatedViewRepeater(mTarget.context).also { zoomTxtr ->
+                    zoomTxtr.setTextureViewToCopy(mTarget)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        while (isScalingNow) {
+                            withContext(Dispatchers.Main) {
+                                kotlin.runCatching {
+                                    zoomTxtr.invalidate()
+                                }
+                            }
+                            delay(1000L/30)
+                        }
+                    }
+                }
+            }
+            mTarget is ImageView -> {
+                mZoomableView = ImageView(mTarget.context).also { zoomImg ->
+                    zoomImg.layoutParams = ViewGroup.LayoutParams(mTarget.width, mTarget.height)
+                    zoomImg.setImageBitmap(ViewUtils.getBitmapFromView(view))
+                }
+            }
+            else -> {
+                mZoomableView = ImageView(mTarget.context).also { zoomImg ->
+                    val targetBmp = Bitmap.createBitmap(
+                        mTarget.measuredWidth,
+                        mTarget.measuredHeight,
+                        Bitmap.Config.ARGB_8888
+                    )
+                    val canvas = Canvas(targetBmp)
+                    mTarget.layout(mTarget.left, mTarget.top, mTarget.right, mTarget.bottom)
+                    mTarget.draw(canvas)
+
+                    zoomImg.layoutParams = ViewGroup.LayoutParams(mTarget.width, mTarget.height)
+                    zoomImg.setImageBitmap(targetBmp)
+                }
+            }
+        }
+
         addTouchCatcherPanel()
 
         //show the view in the same coords
@@ -283,7 +326,7 @@ internal class ZoomableTouchListener(
 
         //trick for simulating the view is getting out of his parent
         disableParentTouch(mTarget.parent)
-        mTarget.visibility = View.INVISIBLE
+        mTarget.alpha = 0F
         if (mConfig.isImmersiveModeEnabled) hideSystemUI()
         mZoomListener?.onViewStartedZooming(mTarget)
     }

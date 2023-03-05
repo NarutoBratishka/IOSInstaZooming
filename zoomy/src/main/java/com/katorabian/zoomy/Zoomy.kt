@@ -11,6 +11,8 @@ import android.view.animation.Interpolator
  * Zoomy.
  */
 object Zoomy {
+    private const val DEF_UPDATE_FREQUENCY: Long = 1000/30
+
     private var mDefaultConfig = ZoomyConfig()
     @JvmStatic
     fun setDefaultConfig(config: ZoomyConfig) {
@@ -23,6 +25,8 @@ object Zoomy {
 
     class Builder {
         private var mDisposed = false
+        private var mTargetAnimated = false //например TextureView, VideoVide, GifImageView
+        private var mUpdateFrequency = DEF_UPDATE_FREQUENCY //например TextureView, VideoVide, GifImageView
         private var mConfig: ZoomyConfig? = null
         private var mTargetContainer: TargetContainer?
         private var mTargetView: View? = null
@@ -75,6 +79,16 @@ object Zoomy {
             return this
         }
 
+        fun supportAnimatedView(
+            isAnimated: Boolean,
+            updateFrequency: Long = DEF_UPDATE_FREQUENCY
+        ): Builder {
+            checkNotDisposed()
+            mTargetAnimated = isAnimated
+            mUpdateFrequency = updateFrequency
+            return this
+        }
+
         fun tapListener(listener: TapListener?): Builder {
             checkNotDisposed()
             mTapListener = listener
@@ -102,7 +116,7 @@ object Zoomy {
                 ZoomableTouchListener(
                     mTargetContainer!!, mTargetView!!, mConfig!!,
                     mZoomInterpolator, mZoomListener, mTapListener,
-                    mLongPressListener, mdDoubleTapListener
+                    mLongPressListener, mdDoubleTapListener, mTargetAnimated
                 )
             )
             mDisposed = true

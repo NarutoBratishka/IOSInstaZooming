@@ -1,6 +1,11 @@
 package com.katorabian.zoomysample;
 
+import android.graphics.ImageDecoder;
+import android.graphics.Movie;
 import android.graphics.Rect;
+import android.graphics.drawable.AnimatedImageDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +25,7 @@ import com.katorabian.zoomy.TapListener;
 import com.katorabian.zoomy.Zoomy;
 import com.katorabian.zoomy.ZoomyConfig;
 
+import java.io.BufferedInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull final ImageViewHolder holder, int position) {
-            ((ImageView) holder.itemView).setImageResource(images.get(position));
+            int imageRes = images.get(position);
+            ((ImageView) holder.itemView).setImageResource(imageRes);
             holder.itemView.setTag(holder.getAdapterPosition());
 
             ZoomyConfig config = new ZoomyConfig();
@@ -79,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
             Zoomy.Builder builder = new Zoomy.Builder(MainActivity.this)
                 .target(holder.itemView)
                 .interpolator(new AccelerateDecelerateInterpolator())
+                .supportAnimatedView( checkIfGif(imageRes), 1000/30 )
                 .tapListener(new TapListener() {
                     @Override
                     public void onTap(View v) {
@@ -106,6 +114,27 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public int getItemCount() {
             return images.size();
+        }
+
+        private boolean checkIfGif(int imgResId) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ImageDecoder.Source source = ImageDecoder.createSource(getResources(), imgResId);
+                    Drawable drawable = ImageDecoder.decodeDrawable(source);
+                    if (drawable instanceof AnimatedImageDrawable) {
+                        return true;
+                    }
+                } else {
+                    BufferedInputStream resIO = new BufferedInputStream(
+                        getResources().openRawResource(imgResId)
+                    );
+                    Movie movie = Movie.decodeStream(resIO);
+                    return movie != null;
+                }
+            } catch (Throwable e) {
+                // not handled
+            }
+            return false;
         }
     }
 
