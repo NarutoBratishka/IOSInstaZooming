@@ -3,12 +3,14 @@ package com.katorabian.zoomysample;
 import android.content.Context;
 import android.util.AttributeSet;
 
+import androidx.appcompat.widget.AppCompatImageView;
+
 /**
  * Created by Álvaro Blanco Cabrero on 12/02/2017.
  * Zoomy.
  */
 
-public class SquareImageView extends android.support.v7.widget.AppCompatImageView {
+public class SquareImageView extends AppCompatImageView {
     public SquareImageView(Context context) {
         super(context);
     }

@@ -2,15 +2,16 @@ package com.katorabian.zoomysample;
 
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.katorabian.R;
 import com.katorabian.zoomy.DoubleTapListener;
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ImageView imageView = new com.katorabian.zoomysample.SquareImageView(MainActivity.this);
+            ImageView imageView = new SquareImageView(MainActivity.this);
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             return new ImageViewHolder(imageView);
         }
