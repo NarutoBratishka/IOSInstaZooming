@@ -3,7 +3,7 @@
 # IOSInstaZooming
 Zoomy is an easy to use pinch-to-zoom Android library
 
-![alt tag](art/zoomy.gif)
+![alt tag](art/ios-insta-zooming.gif)
 ## Installation
 
 ```gradle
@@ -56,6 +56,7 @@ This flags will always override default ZoomyConfig flags.
     Zoomy.Builder builder = new Zoomy.Builder(this)
                     .target(mZoomableView)
                     .enableImmersiveMode(false)
+                    .supportAnimatedView(true, 1000/30)
                     .animateZooming(false);
 ```
 
@@ -106,7 +107,7 @@ A ZoomListener is also provided if you are interested in zoom events.
 License
 =======
 
-    Copyright 2017 Álvaro Blanco Cabrero
+    Copyright 2023 NarutoBratishka
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
