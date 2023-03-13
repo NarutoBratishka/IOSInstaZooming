@@ -104,10 +104,12 @@ internal class ZoomableTouchListener(
         mGestureDetector.onTouchEvent(ev)
         val action = ev.action and MotionEvent.ACTION_MASK
 
-        //все перехватываемые поинтеры в этой части будут Source.TARGET_VIEW
-        LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-        collectViewPointers(v, ev, PointerInfo.Source.TARGET_VIEW)
-        CURRENT_POINTER_COUNT = activePointers.count()
+        kotlin.runCatching {
+            //все перехватываемые поинтеры в этой части будут Source.TARGET_VIEW
+            collectViewPointers(v, ev, PointerInfo.Source.TARGET_VIEW)
+        }.getOrElse {//при попытке спровоцировать жест, двумя пальцами по разным вьюхам
+            return false
+        }
 
         log(
             "Target",
