@@ -413,18 +413,16 @@ internal class ZoomableTouchListener(
             }
         }
 
-        LAST_SCALE *= fakeScaleFactor
         onScaleFactorChanged(fakeScaleFactor)
         return
     }
 
     private fun onScaleFactorChanged(scaleFactor: Float) {
-        mScaleFactor *= scaleFactor
-
         // Don't let the object get too large.
-        mScaleFactor = Math.max(MIN_SCALE_FACTOR, Math.min(mScaleFactor, MAX_SCALE_FACTOR))
-        mZoomableView!!.scaleX = LAST_SCALE * mScaleFactor
-        mZoomableView!!.scaleY = LAST_SCALE * mScaleFactor
+        mScaleFactor = Math.max(MIN_SCALE_FACTOR, Math.min(scaleFactor * LAST_SCALE, MAX_SCALE_FACTOR))
+        LAST_SCALE = mScaleFactor
+        mZoomableView!!.scaleX = mScaleFactor
+        mZoomableView!!.scaleY = mScaleFactor
         obscureDecorView(mScaleFactor)
     }
 
@@ -530,7 +528,7 @@ internal class ZoomableTouchListener(
         @Volatile private var LAST_POINTER_COUNT = 0
         @Volatile private var CURRENT_POINTER_COUNT = 0
         private var LAST_SCALE = 1f
-        private const val MIN_SCALE_FACTOR = 0.2f
+        private const val MIN_SCALE_FACTOR = 0.8f
         private const val MAX_SCALE_FACTOR = 5f
     }
 }
