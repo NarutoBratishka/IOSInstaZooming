@@ -1,11 +1,7 @@
 package com.katorabian.zoomy
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Point
-import android.graphics.PointF
-import android.util.Log
+import android.graphics.*
 import android.view.*
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.ScaleGestureDetector.OnScaleGestureListener
@@ -14,6 +10,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Interpolator
 import android.widget.ImageView
 import com.katorabian.zoomy.MotionUtils.actionMasked
+import com.katorabian.zoomy.Zoomy.log
 import kotlinx.coroutines.*
 import java.lang.Runnable
 import java.util.*
@@ -106,14 +103,14 @@ internal class ZoomableTouchListener(
 
         //все перехватываемые поинтеры в этой части будут Source.TARGET_VIEW
         LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-        kotlin.runCatching {
-            collectViewPointers(ev, PointerInfo.Source.TARGET_VIEW)
-        }.getOrElse {//при попытке спровоцировать жест, двумя пальцами по разным вьюхам
-            return false //TODO сделать нормально. остаются коллбеки - их надо уничтожить
-        }
+        collectViewPointers(ev, PointerInfo.Source.TARGET_VIEW)
         CURRENT_POINTER_COUNT = activePointers.count()
 
-        Log.e("Target", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
+        log(
+            "Target",
+            "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, " +
+                    "srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}"
+        )
 
         when (action) {
             MotionEvent.ACTION_POINTER_DOWN,
@@ -352,39 +349,47 @@ internal class ZoomableTouchListener(
             else
                 onFingerMove(event)
 
-            Log.e("Catcher", "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}")
+            log(
+                "Catcher",
+                "LAST: $LAST_POINTER_COUNT || CURR: $CURRENT_POINTER_COUNT, " +
+                        "srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}"
+            )
 
-            //TODO причесать. это ужасно
+            //если на экране минимум 2 пальца
             if (activePointers.count() == 2) {
-
-                val point1 = activePointers[0]
-                val point2 = activePointers[1]
-
-                val hypotenuse = sqrt(
-                    (point2.rawX - point1.rawX).pow(2) +
-                    (point2.rawY - point1.rawY).pow(2)
-                ) / LAST_SCALE
-
-                var fakeScaleFactor: Float = 1F
-                when (event.actionMasked()) {
-                    MotionEvent.ACTION_POINTER_DOWN,
-                    MotionEvent.ACTION_DOWN -> {
-                        fakeScaleFactorStartPointer = hypotenuse
-                        return@setOnTouchListener true
-                    }
-
-                    MotionEvent.ACTION_MOVE -> {
-                        fakeScaleFactor = hypotenuse / fakeScaleFactorStartPointer
-                    }
-                }
-
-                LAST_SCALE *= fakeScaleFactor
-                onScaleFactorChanged(fakeScaleFactor)
+                //рассчитываем зум по гипотенузе
+                calculateScale(event)
             }
-
             true
         }
         getParentRecursively(mTarget).addView(mTouchCatcherPanel)
+    }
+
+    private fun calculateScale(event: MotionEvent) {
+        val point1 = activePointers[0]
+        val point2 = activePointers[1]
+
+        val hypotenuse = sqrt(
+            (point2.rawX - point1.rawX).pow(2) +
+            (point2.rawY - point1.rawY).pow(2)
+        ) / LAST_SCALE
+
+        var fakeScaleFactor: Float = 1F
+        when (event.actionMasked()) {
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_DOWN -> {
+                fakeScaleFactorStartPointer = hypotenuse
+                return
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                fakeScaleFactor = hypotenuse / fakeScaleFactorStartPointer
+            }
+        }
+
+        LAST_SCALE *= fakeScaleFactor
+        onScaleFactorChanged(fakeScaleFactor)
+        return
     }
 
     private fun onScaleFactorChanged(scaleFactor: Float) {
@@ -430,11 +435,7 @@ internal class ZoomableTouchListener(
             val y = mCurrentMovementMidPoint.y
             mZoomableView!!.x = x
             mZoomableView!!.y = y
-            Log.e("TEST", "XXX: $x, YYY: $y")
-            if (event.actionMasked() == MotionEvent.ACTION_POINTER_UP) {
-                Log.d("TEST", "XXX: $x, YYY: $y")
-                Log.e("TEST", "XXX: $x, YYY: $y")
-            }
+            log("onFingerMove", "XXX: $x, YYY: $y")
         }
     }
 
@@ -470,7 +471,7 @@ internal class ZoomableTouchListener(
     }
 
     private fun obscureDecorView(factor: Float) {
-//        Log.e(TAG, "scaleFactor: $factor")
+//        log(TAG, "scaleFactor: $factor")
         //normalize value between 0 and 1
 //        var normalizedValue = (factor - MIN_SCALE_FACTOR) / (MAX_SCALE_FACTOR - MIN_SCALE_FACTOR)
 //        normalizedValue = Math.min(0.75f, normalizedValue * 2)
@@ -497,8 +498,8 @@ internal class ZoomableTouchListener(
         private const val STATE_IDLE = 0
         private const val STATE_POINTER_DOWN = 1
         private const val STATE_ZOOMING = 2
-        @Volatile private var LAST_POINTER_COUNT = 0 //TODO delete after all (already not need)
-        @Volatile private var CURRENT_POINTER_COUNT = 0 //TODO delete after all (already not need)
+        @Volatile private var LAST_POINTER_COUNT = 0
+        @Volatile private var CURRENT_POINTER_COUNT = 0
         private var LAST_SCALE = 1f
         private const val MIN_SCALE_FACTOR = 0.2f
         private const val MAX_SCALE_FACTOR = 5f
