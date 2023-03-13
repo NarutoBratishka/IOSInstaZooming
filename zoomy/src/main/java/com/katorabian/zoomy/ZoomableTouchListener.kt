@@ -41,6 +41,9 @@ internal class ZoomableTouchListener(
     private var mIsAnimatedTarget: Boolean = false
     private var mState = STATE_IDLE
     private var mZoomableView: View? = null
+    //для перехвата ненужных ивентов
+    private var mReserveCatcherPanel: View? = null
+    //для перехвата новых ивентов
     private var mTouchCatcherPanel: View? = null
     private var mShadow: View? = null
     private val mScaleGestureDetector: ScaleGestureDetector
@@ -263,6 +266,7 @@ internal class ZoomableTouchListener(
         LAST_SCALE = 1F
         isScalingNow = false
         mScaleFactor = 1f
+        removeReserveCatcherPanel()
         removeTouchCatcherPanel()
         if (mConfig.isZoomAnimationEnabled) {
             mAnimatingZoomEnding = true
@@ -318,6 +322,7 @@ internal class ZoomableTouchListener(
             }
         }
 
+        addReserveCatcherPanel()
         addTouchCatcherPanel()
 
         //show the view in the same coords
@@ -334,6 +339,16 @@ internal class ZoomableTouchListener(
         mTarget.alpha = 0F
         if (mConfig.isImmersiveModeEnabled) hideSystemUI()
         mZoomListener?.onViewStartedZooming(mTarget)
+    }
+
+    private fun addReserveCatcherPanel() {
+        mReserveCatcherPanel = View(mTarget.context)
+        mReserveCatcherPanel!!.isClickable = true
+        mReserveCatcherPanel!!.layoutParams = ViewGroup.LayoutParams(
+            getParentRecursively(mTarget).width,
+            getParentRecursively(mTarget).height
+        )
+        getParentRecursively(mTarget).addView(mReserveCatcherPanel)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -450,6 +465,9 @@ internal class ZoomableTouchListener(
 
     private fun removeTouchCatcherPanel() {
         getParentRecursively(mTarget).removeView(mTouchCatcherPanel)
+    }
+    private fun removeReserveCatcherPanel() {
+        getParentRecursively(mTarget).removeView(mReserveCatcherPanel)
     }
 
     override fun onScale(detector: ScaleGestureDetector): Boolean {
