@@ -1,5 +1,8 @@
 package com.katorabian.zoomysample;
 
+import static com.katorabian.zoomy.ZoomableTouchListener.DEF_MAX_SCALE_FACTOR;
+import static com.katorabian.zoomy.ZoomableTouchListener.DEF_MIN_SCALE_FACTOR;
+
 import android.graphics.ImageDecoder;
 import android.graphics.Movie;
 import android.graphics.Rect;
@@ -88,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 .target(holder.itemView)
                 .interpolator(new AccelerateDecelerateInterpolator())
                 .supportAnimatedView( checkIfGif(imageRes), 1000/30 )
+                .customScaleLimiters(DEF_MIN_SCALE_FACTOR, DEF_MAX_SCALE_FACTOR)
                 .tapListener(new TapListener() {
                     @Override
                     public void onTap(View v) {

@@ -6,6 +6,10 @@ import android.app.DialogFragment
 import android.util.Log
 import android.view.View
 import android.view.animation.Interpolator
+import com.katorabian.zoomy.ZoomableTouchListener.Companion.DEF_MAX_SCALE_FACTOR
+import com.katorabian.zoomy.ZoomableTouchListener.Companion.DEF_MIN_SCALE_FACTOR
+import com.katorabian.zoomy.ZoomableTouchListener.Companion.MAX_SCALE_FACTOR
+import com.katorabian.zoomy.ZoomableTouchListener.Companion.MIN_SCALE_FACTOR
 
 /**
  * Created by Álvaro Blanco Cabrero on 12/02/2017.
@@ -91,6 +95,16 @@ object Zoomy {
         fun zoomListener(listener: ZoomListener?): Builder {
             checkNotDisposed()
             mZoomListener = listener
+            return this
+        }
+
+        fun customScaleLimiters(
+            minScale: Float = DEF_MIN_SCALE_FACTOR,
+            maxScale: Float = DEF_MAX_SCALE_FACTOR
+        ): Builder {
+            checkNotDisposed()
+            MIN_SCALE_FACTOR = minScale
+            MAX_SCALE_FACTOR = maxScale
             return this
         }
 

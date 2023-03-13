@@ -500,10 +500,10 @@ internal class ZoomableTouchListener(
     private fun obscureDecorView(factor: Float) {
 //        log(TAG, "scaleFactor: $factor")
         //normalize value between 0 and 1
-//        var normalizedValue = (factor - MIN_SCALE_FACTOR) / (MAX_SCALE_FACTOR - MIN_SCALE_FACTOR)
-//        normalizedValue = Math.min(0.75f, normalizedValue * 2)
-//        val obscure = Color.argb((normalizedValue * 255).toInt(), 0, 0, 0)
-//        mShadow!!.setBackgroundColor(obscure)
+        var normalizedValue = (factor - MIN_SCALE_FACTOR) / (MAX_SCALE_FACTOR - MIN_SCALE_FACTOR)
+        normalizedValue = Math.min(0.75f, normalizedValue * 2)
+        val obscure = Color.argb((normalizedValue * 255).toInt(), 0, 0, 0)
+        mShadow!!.setBackgroundColor(obscure)
     }
 
     private fun hideSystemUI() {
@@ -528,7 +528,9 @@ internal class ZoomableTouchListener(
         @Volatile private var LAST_POINTER_COUNT = 0
         @Volatile private var CURRENT_POINTER_COUNT = 0
         private var LAST_SCALE = 1f
-        private const val MIN_SCALE_FACTOR = 0.8f
-        private const val MAX_SCALE_FACTOR = 5f
+        const val DEF_MIN_SCALE_FACTOR = 0.8f
+        const val DEF_MAX_SCALE_FACTOR = 5f
+        internal var MIN_SCALE_FACTOR = 0.8f
+        internal var MAX_SCALE_FACTOR = 5f
     }
 }
