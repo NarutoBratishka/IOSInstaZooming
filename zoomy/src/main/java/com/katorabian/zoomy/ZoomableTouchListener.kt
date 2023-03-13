@@ -106,7 +106,7 @@ internal class ZoomableTouchListener(
 
         //все перехватываемые поинтеры в этой части будут Source.TARGET_VIEW
         LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-        collectViewPointers(ev, PointerInfo.Source.TARGET_VIEW)
+        collectViewPointers(v, ev, PointerInfo.Source.TARGET_VIEW)
         CURRENT_POINTER_COUNT = activePointers.count()
 
         log(
@@ -143,7 +143,7 @@ internal class ZoomableTouchListener(
     }
 
     private fun collectViewPointers(
-        event: MotionEvent,
+        view: View, event: MotionEvent,
         source: PointerInfo.Source
     ) = synchronized(this) {
 
@@ -173,8 +173,9 @@ internal class ZoomableTouchListener(
 
             //собираем инфо о поинтерах
             createAndAddPointer(
-                pointerIds, i, event, priority,
-                source, toOffset
+                pointerIds, i,
+                view, event,
+                priority, source, toOffset
             )
 
             //Стираем pointers которые больше не существуют
@@ -199,6 +200,7 @@ internal class ZoomableTouchListener(
     private fun createAndAddPointer(
         pointerIds: List<Int>,
         index: Int,
+        view: View,
         event: MotionEvent,
         priority: PointerInfo.Priority,
         source: PointerInfo.Source,
@@ -208,8 +210,8 @@ internal class ZoomableTouchListener(
             //Создаем pointer
             PointerInfo(
                 pointerIds[index],
-                event.getX(index),
-                event.getY(index),
+                view.x + event.getX(index),
+                view.y + event.getY(index),
                 priority,
                 source
             )
@@ -361,7 +363,7 @@ internal class ZoomableTouchListener(
         mTouchCatcherPanel!!.setOnTouchListener { catcher: View, event: MotionEvent ->
 
             LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-            val handle = collectViewPointers(event, PointerInfo.Source.TOUCH_CATCHER)
+            val handle = collectViewPointers(catcher, event, PointerInfo.Source.TOUCH_CATCHER)
             if (!handle) return@setOnTouchListener false
             CURRENT_POINTER_COUNT = activePointers.count()
 
