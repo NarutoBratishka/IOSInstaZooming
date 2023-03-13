@@ -44,6 +44,7 @@ object Zoomy {
 
     class Builder {
         private var mDisposed = false
+        private var mDimmingIntensity = 0.5F
         private var mTargetAnimated = false //например TextureView, VideoVide, GifImageView
         private var mUpdateFrequency = DEF_UPDATE_FREQUENCY //например TextureView, VideoVide, GifImageView
         private var mConfig: ZoomyConfig? = null
@@ -108,6 +109,19 @@ object Zoomy {
             return this
         }
 
+        fun bgDimmingIntensity(multiplier: Float): Builder {
+            checkNotDisposed()
+            if (multiplier !in 0.0 .. 1.0) {
+                Log.e(
+                    "::bgDimmingIntensity",
+                    "expected value should be in 0F ~ 1F range"
+                )
+            } else {
+                mDimmingIntensity = multiplier
+            }
+            return this
+        }
+
         fun supportAnimatedView(
             isAnimated: Boolean,
             updateFrequency: Long = DEF_UPDATE_FREQUENCY
@@ -145,7 +159,8 @@ object Zoomy {
                 ZoomableTouchListener(
                     mTargetContainer!!, mTargetView!!, mConfig!!,
                     mZoomInterpolator, mZoomListener, mTapListener,
-                    mLongPressListener, mdDoubleTapListener, mTargetAnimated
+                    mLongPressListener, mdDoubleTapListener, mTargetAnimated,
+                    mDimmingIntensity
                 )
             )
             mDisposed = true

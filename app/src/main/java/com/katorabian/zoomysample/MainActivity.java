@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 .target(holder.itemView)
                 .interpolator(new AccelerateDecelerateInterpolator())
                 .supportAnimatedView( checkIfGif(imageRes), 1000/30 )
+                .bgDimmingIntensity(0.5F)
                 .customScaleLimiters(DEF_MIN_SCALE_FACTOR, DEF_MAX_SCALE_FACTOR)
                 .tapListener(new TapListener() {
                     @Override

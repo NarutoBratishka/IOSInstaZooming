@@ -64,8 +64,8 @@ This flags will always override default ZoomyConfig flags.
                     .enableImmersiveMode(false)
                     .supportAnimatedView(true, 1000/30)
                     .animateZooming(false)
-                    //set any values you want
-                    .customScaleLimiters(DEF_MIN_SCALE_FACTOR, DEF_MAX_SCALE_FACTOR); 
+                    .bgDimmingIntensity(0.5F) //dimming intensity when view in scaling mode 
+                    .customScaleLimiters(DEF_MIN_SCALE_FACTOR, DEF_MAX_SCALE_FACTOR); //set any values you want 
 ```
 
 + You can add callbacks to listen for specific events. Because Zoomy works by attaching a View.OnTouchListener to the registered View,

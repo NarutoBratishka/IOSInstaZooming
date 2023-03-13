@@ -2,6 +2,7 @@ package com.katorabian.zoomy
 
 import android.annotation.SuppressLint
 import android.graphics.*
+import android.util.Log
 import android.view.*
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.ScaleGestureDetector.OnScaleGestureListener
@@ -30,7 +31,8 @@ internal class ZoomableTouchListener(
     tapListener: TapListener?,
     longPressListener: LongPressListener?,
     doubleTapListener: DoubleTapListener?,
-    isAnimated: Boolean = false
+    isAnimated: Boolean = false,
+    private val mDimmingIntensity: Float = 1F
 ) : OnTouchListener, OnScaleGestureListener {
     private var fakeScaleFactorStartPointer: Float = 0F
     private var isScalingNow = false
@@ -500,11 +502,14 @@ internal class ZoomableTouchListener(
     }
 
     private fun obscureDecorView(factor: Float) {
-//        log(TAG, "scaleFactor: $factor")
+        log(message = "scaleFactor: $factor", priority = Log.DEBUG)
         //normalize value between 0 and 1
         var normalizedValue = (factor - MIN_SCALE_FACTOR) / (MAX_SCALE_FACTOR - MIN_SCALE_FACTOR)
         normalizedValue = Math.min(0.75f, normalizedValue * 2)
-        val obscure = Color.argb((normalizedValue * 255).toInt(), 0, 0, 0)
+        val obscure = Color.argb(
+            (normalizedValue * 255 * mDimmingIntensity).toInt(),
+            0, 0, 0
+        )
         mShadow!!.setBackgroundColor(obscure)
     }
 
