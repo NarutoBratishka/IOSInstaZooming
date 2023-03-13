@@ -40,7 +40,13 @@ Zoomy allows a few customizations in its behavior:
 ```java
 ZoomyConfig config = new ZoomyConfig();
 config.setZoomAnimationEnabled(false); //Enables zoom out animation when view is released (true by default)
-config.setImmersiveModeEnabled(false); //Enables entering in inmersive mode when zooming a view (true by default)          
+config.setImmersiveModeEnabled(false); //Enables entering in immersive mode when zooming a view (true by default)          
+```
+
++ Static enabler for logging
+
+```java
+Zoomy.setLoginEnabled(true); // (false by default)          
 ```
 
 + Now set this as the default configuration across all Zoomy registered views

@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
             ZoomyConfig config = new ZoomyConfig();
             config.setImmersiveModeEnabled(false);
             Zoomy.setDefaultConfig(config);
+            Zoomy.setLoginEnabled(true);
 
             Zoomy.Builder builder = new Zoomy.Builder(MainActivity.this)
                 .target(holder.itemView)

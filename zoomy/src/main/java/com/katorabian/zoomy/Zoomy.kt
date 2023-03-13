@@ -3,6 +3,7 @@ package com.katorabian.zoomy
 import android.app.Activity
 import android.app.Dialog
 import android.app.DialogFragment
+import android.util.Log
 import android.view.View
 import android.view.animation.Interpolator
 
@@ -12,6 +13,7 @@ import android.view.animation.Interpolator
  */
 object Zoomy {
     private const val DEF_UPDATE_FREQUENCY: Long = 1000/30
+    var ENABLE_LOGGING: Boolean = false
 
     private var mDefaultConfig = ZoomyConfig()
     @JvmStatic
@@ -21,6 +23,19 @@ object Zoomy {
 
     fun unregister(view: View) {
         view.setOnTouchListener(null)
+    }
+
+    @JvmStatic
+    fun setLoginEnabled(setEnabled: Boolean = false) {
+        ENABLE_LOGGING = setEnabled
+    }
+
+    fun log(
+        tag: String? = this::class.java.simpleName,
+        message: String,
+        priority: Int = Log.DEBUG
+    ) {
+        if (ENABLE_LOGGING) Log.println(priority, tag, message)
     }
 
     class Builder {
