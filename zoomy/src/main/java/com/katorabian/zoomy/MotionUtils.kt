@@ -36,8 +36,8 @@ internal object MotionUtils {
                     pointerBeforePointerUp.find {
                         it.pointerId == currExistPtr.pointerId && it.source == currExistPtr.source
                     }?.let { removedPointer ->
-                        newOffsetX = savedPositionX * 2 - removedPointer.rawX
-                        newOffsetY = savedPositionY * 2 - removedPointer.rawY
+                        newOffsetX = savedPositionX - removedPointer.rawX
+                        newOffsetY = savedPositionY - removedPointer.rawY
                     }
                     pointerBeforePointerUp = emptyList()
 
@@ -48,12 +48,12 @@ internal object MotionUtils {
                     previousPointers.find {
                         it.pointerId == currExistPtr.pointerId && it.source == currExistPtr.source
                     }?.let { removedPointer ->
-                        newOffsetX = savedPositionX * 2 - removedPointer.rawX
-                        newOffsetY = savedPositionY * 2 - removedPointer.rawY
+                        newOffsetX = savedPositionX - removedPointer.rawX
+                        newOffsetY = savedPositionY - removedPointer.rawY
                     }
                 }
-                x = pointers[0].rawX + newOffsetX
-                y = pointers[0].rawY + newOffsetY
+                x = (pointers[0].rawX + newOffsetX) * 2
+                y = (pointers[0].rawY + newOffsetY) * 2
                 previousPointers = pointers.toList()
             }
 
@@ -77,8 +77,8 @@ internal object MotionUtils {
                     newOffsetX -= newPointer.rawX
                     newOffsetY -= newPointer.rawY
                 }
-                x = pointers[0].rawX + pointers[1].rawX + newOffsetX
-                y = pointers[0].rawY + pointers[1].rawY + newOffsetY
+                x = (pointers[0].rawX + pointers[1].rawX + newOffsetX) * 2
+                y = (pointers[0].rawY + pointers[1].rawY + newOffsetY) * 2
                 previousPointers = pointers.toList()
             }
         }
