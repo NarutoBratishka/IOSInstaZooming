@@ -143,6 +143,13 @@ internal class ZoomableTouchListener(
         event: MotionEvent,
         source: PointerInfo.Source
     ) = synchronized(this) {
+
+        //игнор 3го и последующих пальцев
+        if (event.actionMasked() in arrayOf(
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_DOWN
+        ) && activePointers.count() >= 2) return@synchronized false
+
         val pointerIds = executeListOfPointersIds(event)
 
         checkAndRemove(source, pointerIds)
@@ -183,6 +190,7 @@ internal class ZoomableTouchListener(
                 checkAndRemoveList.addAll(pointerIds)
             }
         }
+        return@synchronized true
     }
 
     private fun createAndAddPointer(
@@ -338,7 +346,8 @@ internal class ZoomableTouchListener(
         mTouchCatcherPanel!!.setOnTouchListener { catcher: View, event: MotionEvent ->
 
             LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
-            collectViewPointers(event, PointerInfo.Source.TOUCH_CATCHER)
+            val handle = collectViewPointers(event, PointerInfo.Source.TOUCH_CATCHER)
+            if (!handle) return@setOnTouchListener false
             CURRENT_POINTER_COUNT = activePointers.count()
 
             val actionMasked = event.actionMasked()
