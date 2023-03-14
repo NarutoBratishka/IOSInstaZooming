@@ -62,7 +62,7 @@ This flags will always override default ZoomyConfig flags.
     Zoomy.Builder builder = new Zoomy.Builder(this)
                     .target(mZoomableView)
                     .enableImmersiveMode(false)
-                    .supportAnimatedView(true, 1000/30)
+                    .supportAnimatedView(true, 30)
                     .animateZooming(false)
                     .bgDimmingIntensity(0.5F) //dimming intensity when view in scaling mode 
                     .customScaleLimiters(DEF_MIN_SCALE_FACTOR, DEF_MAX_SCALE_FACTOR); //set any values you want 
