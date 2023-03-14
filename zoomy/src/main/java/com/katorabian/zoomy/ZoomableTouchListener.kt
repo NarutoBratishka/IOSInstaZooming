@@ -300,7 +300,7 @@ internal class ZoomableTouchListener(
                                     zoomTxtr.invalidate()
                                 }
                             }
-                            delay(1000L/30)
+                            delay(1000 / Zoomy.ANIM_VIEW_FPS)
                         }
                     }
                 }
@@ -535,9 +535,10 @@ internal class ZoomableTouchListener(
         @Volatile private var LAST_POINTER_COUNT = 0
         @Volatile private var CURRENT_POINTER_COUNT = 0
         private var LAST_SCALE = 1f
-        const val DEF_MIN_SCALE_FACTOR = 0.8f
-        const val DEF_MAX_SCALE_FACTOR = 5f
         internal var MIN_SCALE_FACTOR = 0.8f
         internal var MAX_SCALE_FACTOR = 5f
     }
 }
+
+const val DEF_MIN_SCALE_FACTOR = 0.8f
+const val DEF_MAX_SCALE_FACTOR = 5f

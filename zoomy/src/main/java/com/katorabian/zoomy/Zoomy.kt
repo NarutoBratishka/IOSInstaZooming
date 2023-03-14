@@ -3,11 +3,10 @@ package com.katorabian.zoomy
 import android.app.Activity
 import android.app.Dialog
 import android.app.DialogFragment
+import android.os.Build
 import android.util.Log
 import android.view.View
 import android.view.animation.Interpolator
-import com.katorabian.zoomy.ZoomableTouchListener.Companion.DEF_MAX_SCALE_FACTOR
-import com.katorabian.zoomy.ZoomableTouchListener.Companion.DEF_MIN_SCALE_FACTOR
 import com.katorabian.zoomy.ZoomableTouchListener.Companion.MAX_SCALE_FACTOR
 import com.katorabian.zoomy.ZoomableTouchListener.Companion.MIN_SCALE_FACTOR
 
@@ -16,7 +15,13 @@ import com.katorabian.zoomy.ZoomableTouchListener.Companion.MIN_SCALE_FACTOR
  * Zoomy.
  */
 object Zoomy {
-    private const val DEF_UPDATE_FREQUENCY: Long = 1000/30
+    private val DEF_ANIM_VIEW_FPS: Long =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 60
+        else 30
+    //you could use another solutions for detecting device fps
+    //e.g. https://github.com/wasabeef/Takt
+
+    var ANIM_VIEW_FPS: Long = DEF_ANIM_VIEW_FPS
     var ENABLE_LOGGING: Boolean = false
 
     private var mDefaultConfig = ZoomyConfig()
@@ -46,7 +51,7 @@ object Zoomy {
         private var mDisposed = false
         private var mDimmingIntensity = 0.5F
         private var mTargetAnimated = false //например TextureView, VideoVide, GifImageView
-        private var mUpdateFrequency = DEF_UPDATE_FREQUENCY //например TextureView, VideoVide, GifImageView
+        private var mUpdateFrequency = DEF_ANIM_VIEW_FPS //например TextureView, VideoVide, GifImageView
         private var mConfig: ZoomyConfig? = null
         private var mTargetContainer: TargetContainer?
         private var mTargetView: View? = null
@@ -124,11 +129,11 @@ object Zoomy {
 
         fun supportAnimatedView(
             isAnimated: Boolean,
-            updateFrequency: Long = DEF_UPDATE_FREQUENCY
+            animViewFps: Long = DEF_ANIM_VIEW_FPS
         ): Builder {
             checkNotDisposed()
             mTargetAnimated = isAnimated
-            mUpdateFrequency = updateFrequency
+            ANIM_VIEW_FPS = animViewFps
             return this
         }
 
