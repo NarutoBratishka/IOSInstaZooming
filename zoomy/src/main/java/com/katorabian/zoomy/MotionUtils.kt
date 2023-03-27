@@ -17,6 +17,8 @@ internal object MotionUtils {
     private var pointerBeforePointerUp: List<PointerInfo> = emptyList()
     private var previousPointers: List<PointerInfo> = emptyList()
 
+
+    //похоже что фича перемещения увеличенного видео всё еще работает некорректно
     fun midPointOfEvent(point: PointF, pointers: List<PointerInfo>, event: MotionEvent) {
         val x: Float
         val y: Float
