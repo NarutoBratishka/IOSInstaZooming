@@ -350,19 +350,31 @@ internal class ZoomableTouchListener(
     private fun addReserveCatcherPanel() {
         mReserveCatcherPanel = View(mTarget.context)
         mReserveCatcherPanel!!.isClickable = true
+
+        val mTargetRootParent = getParentRecursively(mTarget) ?: kotlin.run {
+            endZoomingView()
+            return
+        }
+
         mReserveCatcherPanel!!.layoutParams = ViewGroup.LayoutParams(
-            getParentRecursively(mTarget).width,
-            getParentRecursively(mTarget).height
+            mTargetRootParent.width,
+            mTargetRootParent.height
         )
-        getParentRecursively(mTarget).addView(mReserveCatcherPanel)
+        mTargetRootParent.addView(mReserveCatcherPanel)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun addTouchCatcherPanel() {
         mTouchCatcherPanel = View(mTarget.context)
+
+        val mTargetRootParent = getParentRecursively(mTarget) ?: kotlin.run {
+            endZoomingView()
+            return
+        }
+
         mTouchCatcherPanel!!.layoutParams = ViewGroup.LayoutParams(
-            getParentRecursively(mTarget).width,
-            getParentRecursively(mTarget).height
+            mTargetRootParent.width,
+            mTargetRootParent.height
         )
         mTouchCatcherPanel!!.setOnTouchListener { catcher: View, event: MotionEvent ->
 
@@ -392,7 +404,7 @@ internal class ZoomableTouchListener(
             }
             true
         }
-        getParentRecursively(mTarget).addView(mTouchCatcherPanel)
+        mTargetRootParent.addView(mTouchCatcherPanel)
     }
 
     private fun calculateScale(event: MotionEvent) {
@@ -468,10 +480,10 @@ internal class ZoomableTouchListener(
     }
 
     private fun removeTouchCatcherPanel() {
-        getParentRecursively(mTarget).removeView(mTouchCatcherPanel)
+        getParentRecursively(mTarget)?.removeView(mTouchCatcherPanel)
     }
     private fun removeReserveCatcherPanel() {
-        getParentRecursively(mTarget).removeView(mReserveCatcherPanel)
+        getParentRecursively(mTarget)?.removeView(mReserveCatcherPanel)
     }
 
     override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -496,9 +508,11 @@ internal class ZoomableTouchListener(
         mTargetContainer.decorView.removeView(v)
     }
 
-    private fun getParentRecursively(v: View): ViewGroup {
+    private fun getParentRecursively(v: View): ViewGroup? {
         val presumablyParent = v.parent
-        return if (presumablyParent is ViewGroup) getParentRecursively(presumablyParent) else v as ViewGroup
+        return if (presumablyParent is ViewGroup) getParentRecursively(presumablyParent)
+            else if (v is ViewGroup) v
+            else null
     }
 
     private fun obscureDecorView(factor: Float) {
