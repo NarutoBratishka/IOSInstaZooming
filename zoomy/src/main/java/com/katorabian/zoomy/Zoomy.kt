@@ -6,6 +6,7 @@ import android.app.DialogFragment
 import android.os.Build
 import android.util.Log
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.animation.Interpolator
 import com.katorabian.zoomy.ZoomableTouchListener.Companion.MAX_SCALE_FACTOR
 import com.katorabian.zoomy.ZoomableTouchListener.Companion.MIN_SCALE_FACTOR
@@ -160,14 +161,23 @@ object Zoomy {
             if (mConfig == null) mConfig = mDefaultConfig
             requireNotNull(mTargetContainer) { "Target container must not be null" }
             requireNotNull(mTargetView) { "Target view must not be null" }
-            mTargetView!!.setOnTouchListener(
-                ZoomableTouchListener(
-                    mTargetContainer!!, mTargetView!!, mConfig!!,
-                    mZoomInterpolator, mZoomListener, mTapListener,
-                    mLongPressListener, mdDoubleTapListener, mTargetAnimated,
-                    mDimmingIntensity
-                )
+            val touchListener = ZoomableTouchListener(
+                mTargetContainer!!, mTargetView!!, mConfig!!,
+                mZoomInterpolator, mZoomListener, mTapListener,
+                mLongPressListener, mdDoubleTapListener, mTargetAnimated,
+                mDimmingIntensity
             )
+            mTargetView!!.setOnTouchListener(touchListener)
+
+            val onWindowAttachListener = object : ViewTreeObserver.OnWindowAttachListener {
+                override fun onWindowAttached() {}
+                override fun onWindowDetached() {
+                    touchListener.endZoomingView()
+                    mTargetView?.viewTreeObserver?.removeOnWindowAttachListener(this)
+                }
+            }
+            mTargetView?.viewTreeObserver?.addOnWindowAttachListener(onWindowAttachListener)
+
             mDisposed = true
         }
 

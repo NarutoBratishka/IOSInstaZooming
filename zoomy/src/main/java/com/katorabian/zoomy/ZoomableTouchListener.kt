@@ -268,7 +268,7 @@ internal class ZoomableTouchListener(
     }
 
 
-    private fun endZoomingView() {
+    fun endZoomingView() {
         LAST_SCALE = 1F
         isScalingNow = false
         mScaleFactor = 1f
