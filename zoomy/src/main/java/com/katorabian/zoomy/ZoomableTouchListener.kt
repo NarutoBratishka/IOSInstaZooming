@@ -119,9 +119,9 @@ internal class ZoomableTouchListener(
                     "srcs: ${activePointers.joinToString(", ") { "[${it.pointerId} ${it.source}]" }}"
         )
 
-        when (action) {
+        val isAllOk = when (action) {
             MotionEvent.ACTION_POINTER_DOWN,
-            MotionEvent.ACTION_DOWN ->
+            MotionEvent.ACTION_DOWN -> {
                 when (mState) {
                     STATE_IDLE -> mState = STATE_POINTER_DOWN
                     STATE_POINTER_DOWN -> {
@@ -134,6 +134,8 @@ internal class ZoomableTouchListener(
                         startZoomingView(mTarget)
                     }
                 }
+                true
+            }
 
             MotionEvent.ACTION_MOVE ->
                 onFingerMove(ev)
@@ -142,7 +144,15 @@ internal class ZoomableTouchListener(
             MotionEvent.ACTION_UP,
             MotionEvent.ACTION_CANCEL ->
                 onFingerUp(ev)
+
+            else -> true
         }
+
+        if (!isAllOk) {
+            endZoomingView()
+            return false
+        }
+
         return true
     }
 
@@ -274,9 +284,11 @@ internal class ZoomableTouchListener(
         mScaleFactor = 1f
         removeReserveCatcherPanel()
         removeTouchCatcherPanel()
-        if (mConfig.isZoomAnimationEnabled) {
+
+        val zoomableView = mZoomableView
+        if (mConfig.isZoomAnimationEnabled && zoomableView != null) {
             mAnimatingZoomEnding = true
-            mZoomableView!!.animate()
+            zoomableView.animate()
                 .x(mTargetViewCords.x.toFloat())
                 .y(mTargetViewCords.y.toFloat())
                 .scaleX(1f)
@@ -386,10 +398,15 @@ internal class ZoomableTouchListener(
             val actionMasked = event.actionMasked()
             mState = STATE_ZOOMING
 
-            if (isFingerUp(actionMasked))
+            val isAllOk = if (isFingerUp(actionMasked))
                 onFingerUp(event)
             else
                 onFingerMove(event)
+
+            if (!isAllOk) {
+                endZoomingView()
+                return@setOnTouchListener false
+            }
 
             log(
                 "Catcher",
@@ -434,6 +451,7 @@ internal class ZoomableTouchListener(
     }
 
     private fun onScaleFactorChanged(scaleFactor: Float) {
+        val zoomableView = mZoomableView ?: return
         // Don't let the object get too large.
         mScaleFactor = Math.max(MIN_SCALE_FACTOR, Math.min(scaleFactor * LAST_SCALE, MAX_SCALE_FACTOR))
         LAST_SCALE = mScaleFactor
@@ -442,7 +460,7 @@ internal class ZoomableTouchListener(
         obscureDecorView(mScaleFactor)
     }
 
-    private fun onFingerUp(event: MotionEvent) {
+    private fun onFingerUp(event: MotionEvent): Boolean {
         if (activePointers.count() == 0) {
             when (mState) {
                 STATE_ZOOMING -> {
@@ -451,12 +469,15 @@ internal class ZoomableTouchListener(
                 STATE_POINTER_DOWN -> mState = STATE_IDLE
             }
         } else {
-            onFingerMove(event)
+            return onFingerMove(event)
         }
+        return true
     }
 
-    private fun onFingerMove(event: MotionEvent) {
+    private fun onFingerMove(event: MotionEvent): Boolean {
         if (mState == STATE_ZOOMING) {
+            val zoomableView = mZoomableView ?: return false
+
             MotionUtils.midPointOfEvent(
                 mCurrentMovementMidPoint,
                 activePointers,
@@ -473,10 +494,12 @@ internal class ZoomableTouchListener(
             mCurrentMovementMidPoint.y += mTargetViewCords.y.toFloat()
             val x = mCurrentMovementMidPoint.x
             val y = mCurrentMovementMidPoint.y
-            mZoomableView!!.x = x
-            mZoomableView!!.y = y
+            zoomableView.x = x
+            zoomableView.y = y
             log("onFingerMove", "XXX: $x, YYY: $y")
         }
+
+        return true
     }
 
     private fun removeTouchCatcherPanel() {
