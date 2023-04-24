@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.app.DialogFragment
 import android.os.Build
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
 import android.view.animation.Interpolator
@@ -16,6 +17,7 @@ import com.katorabian.zoomy.ZoomableTouchListener.Companion.MIN_SCALE_FACTOR
  * Zoomy.
  */
 object Zoomy {
+    internal var TOUCH_LISTENER_DROP_TIME = System.currentTimeMillis()
     private val DEF_ANIM_VIEW_FPS: Long =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 60
         else 30
@@ -32,7 +34,19 @@ object Zoomy {
     }
 
     fun unregister(view: View) {
+        view.onTouchEvent(
+            MotionEvent.obtain(
+                0L, System.currentTimeMillis(), MotionEvent.ACTION_CANCEL,
+                (view.bottom + view.top)/2F,
+                (view.right + view.left)/2F,
+                0
+            )
+        )
         view.setOnTouchListener(null)
+    }
+
+    fun dropPrevious() {
+        TOUCH_LISTENER_DROP_TIME = System.currentTimeMillis()
     }
 
     @JvmStatic
@@ -161,22 +175,23 @@ object Zoomy {
             if (mConfig == null) mConfig = mDefaultConfig
             requireNotNull(mTargetContainer) { "Target container must not be null" }
             requireNotNull(mTargetView) { "Target view must not be null" }
-            val touchListener = ZoomableTouchListener(
-                mTargetContainer!!, mTargetView!!, mConfig!!,
-                mZoomInterpolator, mZoomListener, mTapListener,
-                mLongPressListener, mdDoubleTapListener, mTargetAnimated,
-                mDimmingIntensity
+            mTargetView!!.setOnTouchListener(
+                ZoomableTouchListener(
+                    mTargetContainer!!, mTargetView!!, mConfig!!,
+                    mZoomInterpolator, mZoomListener, mTapListener,
+                    mLongPressListener, mdDoubleTapListener, mTargetAnimated,
+                    mDimmingIntensity
+                )
             )
-            mTargetView!!.setOnTouchListener(touchListener)
 
-            val onWindowAttachListener = object : ViewTreeObserver.OnWindowAttachListener {
-                override fun onWindowAttached() {}
-                override fun onWindowDetached() {
-                    touchListener.endZoomingView()
-                    mTargetView?.viewTreeObserver?.removeOnWindowAttachListener(this)
+            mTargetView!!.addOnAttachStateChangeListener(
+                object : View.OnAttachStateChangeListener {
+                    override fun onViewAttachedToWindow(v: View) {}
+                    override fun onViewDetachedFromWindow(v: View) {
+                        unregister(v)
+                    }
                 }
-            }
-            mTargetView?.viewTreeObserver?.addOnWindowAttachListener(onWindowAttachListener)
+            )
 
             mDisposed = true
         }

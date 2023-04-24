@@ -15,10 +15,8 @@ implementation 'io.github.narutobratishka:ios-insta-zooming:{latest version}'
 To start using Zoomy, just register the View you want to be zoomable
 
 ```java
-
 Zoomy.Builder builder = new Zoomy.Builder(this).target(mZoomableView);
 builder.register();
-            
 ```
 
 Thats all. Now your views can be pinch-zoomed!
@@ -26,9 +24,13 @@ Thats all. Now your views can be pinch-zoomed!
 Views can be unregistered for Zoomy too
 
 ```java
+Zoomy.unregister(mZoomableView);
+```
 
-Zoomy.unregister(mZoomableView');
-            
+Use this to stop previously set listeners 
+
+```java
+Zoomy.dropPrevious();
 ```
 
 ## Customization

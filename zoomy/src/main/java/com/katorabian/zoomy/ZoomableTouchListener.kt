@@ -34,6 +34,7 @@ internal class ZoomableTouchListener(
     isAnimated: Boolean = false,
     private val mDimmingIntensity: Float = 1F
 ) : OnTouchListener, OnScaleGestureListener {
+    private val attachSystemTime: Long = System.currentTimeMillis()
     private var fakeScaleFactorStartPointer: Float = 0F
     private var isScalingNow = false
     private val activePointers: MutableList<PointerInfo> = mutableListOf()
@@ -101,6 +102,12 @@ internal class ZoomableTouchListener(
     }
 
     override fun onTouch(v: View, ev: MotionEvent): Boolean {
+        if (attachSystemTime < Zoomy.TOUCH_LISTENER_DROP_TIME) {
+            breakZoom()
+            Zoomy.unregister(v)
+            return false
+        }
+
         if (mAnimatingZoomEnding || ev.pointerCount > 2) return true
         mScaleGestureDetector.onTouchEvent(ev)
         mGestureDetector.onTouchEvent(ev)
@@ -141,15 +148,17 @@ internal class ZoomableTouchListener(
                 onFingerMove(ev)
 
             MotionEvent.ACTION_POINTER_UP,
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_CANCEL ->
+            MotionEvent.ACTION_UP ->
                 onFingerUp(ev)
+
+            MotionEvent.ACTION_CANCEL -> false
+
 
             else -> true
         }
 
         if (!isAllOk) {
-            endZoomingView()
+            breakZoom()
             return false
         }
 
@@ -163,9 +172,9 @@ internal class ZoomableTouchListener(
 
         //игнор 3го и последующих пальцев
         if (event.actionMasked() in arrayOf(
-            MotionEvent.ACTION_POINTER_DOWN,
-            MotionEvent.ACTION_DOWN
-        ) && activePointers.count() >= 2) return@synchronized false
+                MotionEvent.ACTION_POINTER_DOWN,
+                MotionEvent.ACTION_DOWN
+            ) && activePointers.count() >= 2) return@synchronized false
 
         val pointerIds = executeListOfPointersIds(event)
 
@@ -232,9 +241,9 @@ internal class ZoomableTouchListener(
         }.getOrNull()?.let { pointer ->
             //Если такой уже есть в списке активных
             if (activePointers.find {
-                it.pointerId == pointer.pointerId &&
-                it.source == pointer.source
-            } != null)
+                    it.pointerId == pointer.pointerId &&
+                            it.source == pointer.source
+                } != null)
             //Перезаписываем
                 activePointers[index + toOffset] = pointer
             else
@@ -264,8 +273,7 @@ internal class ZoomableTouchListener(
     private fun isFingerUp(actionMasked: Int): Boolean {
         return actionMasked in arrayOf(
             MotionEvent.ACTION_POINTER_UP,
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_CANCEL
+            MotionEvent.ACTION_UP
         )
     }
 
@@ -389,6 +397,10 @@ internal class ZoomableTouchListener(
             mTargetRootParent.height
         )
         mTouchCatcherPanel!!.setOnTouchListener { catcher: View, event: MotionEvent ->
+            if (event.actionMasked() == MotionEvent.ACTION_CANCEL) {
+                breakZoom()
+                return@setOnTouchListener false
+            }
 
             LAST_POINTER_COUNT = CURRENT_POINTER_COUNT
             val handle = collectViewPointers(catcher, event, PointerInfo.Source.TOUCH_CATCHER)
@@ -424,13 +436,18 @@ internal class ZoomableTouchListener(
         mTargetRootParent.addView(mTouchCatcherPanel)
     }
 
+    private fun breakZoom() {
+        activePointers.clear()
+        endZoomingView()
+    }
+
     private fun calculateScale(event: MotionEvent) {
         val point1 = activePointers[0]
         val point2 = activePointers[1]
 
         val hypotenuse = sqrt(
             (point2.rawX - point1.rawX).pow(2) +
-            (point2.rawY - point1.rawY).pow(2)
+                    (point2.rawY - point1.rawY).pow(2)
         ) / LAST_SCALE
 
         var fakeScaleFactor: Float = 1F
@@ -534,8 +551,8 @@ internal class ZoomableTouchListener(
     private fun getParentRecursively(v: View): ViewGroup? {
         val presumablyParent = v.parent
         return if (presumablyParent is ViewGroup) getParentRecursively(presumablyParent)
-            else if (v is ViewGroup) v
-            else null
+        else if (v is ViewGroup) v
+        else null
     }
 
     private fun obscureDecorView(factor: Float) {
