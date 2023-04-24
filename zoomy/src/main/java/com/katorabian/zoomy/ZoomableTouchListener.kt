@@ -103,7 +103,7 @@ internal class ZoomableTouchListener(
 
     override fun onTouch(v: View, ev: MotionEvent): Boolean {
         if (attachSystemTime < Zoomy.TOUCH_LISTENER_DROP_TIME) {
-            breakZoom()
+            endZoomingView()
             Zoomy.unregister(v)
             return false
         }
@@ -158,7 +158,7 @@ internal class ZoomableTouchListener(
         }
 
         if (!isAllOk) {
-            breakZoom()
+            endZoomingView()
             return false
         }
 
@@ -287,6 +287,7 @@ internal class ZoomableTouchListener(
 
 
     fun endZoomingView() {
+        activePointers.clear()
         LAST_SCALE = 1F
         isScalingNow = false
         mScaleFactor = 1f
@@ -368,7 +369,9 @@ internal class ZoomableTouchListener(
     }
 
     private fun addReserveCatcherPanel() {
-        mReserveCatcherPanel = View(mTarget.context)
+        mReserveCatcherPanel = View(mTarget.context).also {
+            it.tag = KEY_RESERVE_CATCHER_PANEL
+        }
         mReserveCatcherPanel!!.isClickable = true
 
         val mTargetRootParent = getParentRecursively(mTarget) ?: kotlin.run {
@@ -385,7 +388,9 @@ internal class ZoomableTouchListener(
 
     @SuppressLint("ClickableViewAccessibility")
     private fun addTouchCatcherPanel() {
-        mTouchCatcherPanel = View(mTarget.context)
+        mTouchCatcherPanel = View(mTarget.context).also {
+            it.tag = KEY_TOUCH_CATCHER_PANEL
+        }
 
         val mTargetRootParent = getParentRecursively(mTarget) ?: kotlin.run {
             endZoomingView()
@@ -398,7 +403,7 @@ internal class ZoomableTouchListener(
         )
         mTouchCatcherPanel!!.setOnTouchListener { catcher: View, event: MotionEvent ->
             if (event.actionMasked() == MotionEvent.ACTION_CANCEL) {
-                breakZoom()
+                endZoomingView()
                 return@setOnTouchListener false
             }
 
@@ -434,11 +439,6 @@ internal class ZoomableTouchListener(
             true
         }
         mTargetRootParent.addView(mTouchCatcherPanel)
-    }
-
-    private fun breakZoom() {
-        activePointers.clear()
-        endZoomingView()
     }
 
     private fun calculateScale(event: MotionEvent) {
@@ -520,10 +520,18 @@ internal class ZoomableTouchListener(
     }
 
     private fun removeTouchCatcherPanel() {
-        getParentRecursively(mTarget)?.removeView(mTouchCatcherPanel)
+        getParentRecursively(mTarget)?.apply {
+            removeView(mTouchCatcherPanel)
+        }?: mTargetContainer.decorView.apply {
+            removeView(findViewWithTag(KEY_TOUCH_CATCHER_PANEL))
+        }
     }
     private fun removeReserveCatcherPanel() {
-        getParentRecursively(mTarget)?.removeView(mReserveCatcherPanel)
+        getParentRecursively(mTarget)?.apply {
+            removeView(mReserveCatcherPanel)
+        }?: mTargetContainer.decorView.apply {
+            removeView(findViewWithTag(KEY_RESERVE_CATCHER_PANEL))
+        }
     }
 
     override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -591,6 +599,8 @@ internal class ZoomableTouchListener(
         private var LAST_SCALE = 1f
         internal var MIN_SCALE_FACTOR = 0.8f
         internal var MAX_SCALE_FACTOR = 5f
+        private const val KEY_TOUCH_CATCHER_PANEL = "touchCatcherPanel"
+        private const val KEY_RESERVE_CATCHER_PANEL = "touchCatcherPanel"
     }
 }
 
