@@ -17,7 +17,7 @@ import com.katorabian.zoomy.ZoomableTouchListener.Companion.MIN_SCALE_FACTOR
  * Zoomy.
  */
 object Zoomy {
-    internal var TOUCH_LISTENER_DROP_TIME = System.currentTimeMillis()
+    @Volatile internal var TOUCH_LISTENER_DROP_TIME = System.currentTimeMillis()
     private val DEF_ANIM_VIEW_FPS: Long =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 60
         else 30
@@ -182,15 +182,6 @@ object Zoomy {
                     mLongPressListener, mdDoubleTapListener, mTargetAnimated,
                     mDimmingIntensity
                 )
-            )
-
-            mTargetView!!.addOnAttachStateChangeListener(
-                object : View.OnAttachStateChangeListener {
-                    override fun onViewAttachedToWindow(v: View) {}
-                    override fun onViewDetachedFromWindow(v: View) {
-                        unregister(v)
-                    }
-                }
             )
 
             mDisposed = true
