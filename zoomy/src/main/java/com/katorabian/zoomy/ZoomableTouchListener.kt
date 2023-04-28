@@ -314,9 +314,17 @@ internal class ZoomableTouchListener(
             mIsAnimatedTarget -> {
                 mZoomableView = DummyAnimatedViewRepeater(mTarget.context).also { zoomTxtr ->
                     zoomTxtr.setTextureViewToCopy(mTarget)
-                    CoroutineScope(Dispatchers.IO).launch {
+                    CoroutineScope(Dispatchers.Unconfined).launch {
                         while (isScalingNow) {
-                            withContext(Dispatchers.Main) {
+                            if (attachSystemTime < Zoomy.TOUCH_LISTENER_DROP_TIME) {
+                                withContext(Dispatchers.Main.immediate) {
+                                    endZoomingView()
+                                    Zoomy.unregister(mTarget)
+                                    cancel()
+                                }
+                                return@launch
+                            }
+                            withContext(Dispatchers.Main.immediate) {
                                 kotlin.runCatching {
                                     zoomTxtr.invalidate()
                                 }
